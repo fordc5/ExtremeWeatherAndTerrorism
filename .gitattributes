@@ -1,0 +1,4 @@
+*.csv filter=lfs diff=lfs merge=lfs -text
+MasterData.Rmd filter=lfs diff=lfs merge=lfs -text
+DataMaster.csv filter=lfs diff=lfs merge=lfs -text
+GlobalLandTemperaturesByCity.csv filter=lfs diff=lfs merge=lfs -text
