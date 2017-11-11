@@ -72,3 +72,18 @@ Earthquakes: Occurrence and magnitude of earthquakes at a given location/region
 End Product
 
 Ultimately, we want to create a predictive model that calculates the likelihood of a terrorist event occurring in specific regions (i.e. cities, states, or countries) for a given time period (i.e. next month). In addition to this, we hope to provide insights into what the potential terrorist attack could look like (i.e. will private individuals or the government be targeted). With some more research into neural networks, the two of us hope to create one using our dataset to create this predictive model.  We also hope to create a graphic that depicts terrorist attacks over time superimposed on a world or local map.
+
+
+
+
+###Pushing large files
+```$ brew update ```
+```$ brew install git-lfs```
+```$ git lfs install```
+Before putting the .csv files in your local git repo:
+```$ git lfs track "*.csv"```
+```$ git add .gitattributes```
+```$ git add .```
+```$ git commit -m ".."```
+```$ git push```
+
