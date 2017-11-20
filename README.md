@@ -1,3 +1,22 @@
+
+## Update
+
+1. Have you already collected, or do you have access to, all of the data that you will need in order to complete your project? If not, please estimate the percentage of the data that you have, describe any issues that you are having, and what your plan is for getting the rest of the data.
+
+We have our terrorism, temperature, and drought data. For now, we believe that this covers all the raw data that we will need. We assume that we will have to be creative with this raw data by creating more columns such as "number of attacks that have occurred in this region in past year" and "average change in temperature over the past year". We are having some issues with our data which we will describe below.
+
+2. What is the single biggest unresolved issue you are having? Please describe it briefly, and what your plan is for resolving this issue.
+    
+Our biggest issue to date is that because have so much data, when we wrangle/join global terrorism and temperature data we have large holes in the terrorism data. We also have limited global accessibility to drought data, so are going to create our initial model for only the United States where there are fewer terrorist attacks and more robust temperature, drought, and rain data.
+    
+3. What are the elements from outside of the course, if any, that you plan to incorporate into your project?
+
+We are going to create a neural net to predict whether or not a terrorist attack will occur on a given day in a given place and make some visualizations that we didn't cover in the course. These visualizations will hopefully elucidate trends in weather and terrorism on their own over time as well as possible links between the two phenomenon.
+
+
+
+## Proposal
+
 Bradley Druzinsky and Connor Ford
 Computational Statistics
 Updated Project Proposal
