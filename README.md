@@ -13,6 +13,13 @@ Our biggest issue to date is that because have so much data, when we wrangle/joi
 
 We are going to create a neural net to predict whether or not a terrorist attack will occur on a given day in a given place and make some visualizations that we didn't cover in the course. These visualizations will hopefully elucidate trends in weather and terrorism on their own over time as well as possible links between the two phenomenon.
 
+###  Prof Hardin comments on update
+
+I like the fact that you know enough about your data to know that there will be limitations.  Given that you are focused on the US, do you feel comfortable about the current amount of missing data?  That is, does your US only data have any missing data?  You might need to impute information (kNN??) if there is sitll missing information.
+
+Neural network sounds great!  If the groups have substantial imbalance (very few terrorist attacks), you might investigate whether there are neural networks which are specific to situations with a lot of imbalance.   I'm not super familiar with neural networks in particular, but I do know that random forests, for example, use different criteria for splitting when applied to imbalanced data.  
+
+You are right on track, nice job.  Let me know if there are any specific questions I can answer.
 
 
 ## Proposal
