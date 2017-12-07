@@ -143,3 +143,23 @@ scaledData <- as.data.frame(scale(mergedMasterDataSelectedCols, center = minScal
 
 
 
+
+
+#Function that convertes a vector of Lats or Longs of the 
+#format string ("47.47N") to 47.47 as numeric
+
+changeLatLong <- function(x) {
+  res <- c()
+  for (e in x) {
+    charV <- strsplit(e, "")
+    dir <- tail(charV[[1]], n=1)
+    if (!identical(dir, character(0))) {
+      charV <- head(charV[[1]], -1)
+      res <- c(res, as.numeric(paste(charV, collapse="")))
+    } else {
+      res <- c(NA, res)
+    }
+  }
+  return(res)
+}
+
