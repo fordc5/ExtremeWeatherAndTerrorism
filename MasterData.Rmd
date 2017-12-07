@@ -64,7 +64,7 @@ dim(temperatureData)
 
 **Some important features (variables) in the terrorism and temperature data sets**
 
-### Terrorism Set (From url...)
+#### Terrorism Set (From url...)
 * Event id
 * Date
 * Country
@@ -75,14 +75,52 @@ dim(temperatureData)
 * Weapon type
 * Number killed
 
-### Temperature Set (From url...)
+#### Temperature Set (From url...)
 * Date
 * Average Temperature (of day)
 * City
 * Country
 * Latitude, Longitude
 
+#### Lat/Long -> Clustered Regions
+The function below takes a vector of Latitudes and a vector of Longitudes and runs Hartigan and Wong's (1979) k-means clustering algorithm to cluster the latitude and longitudes into regions. This saves us the hassle of converting cities or lat/long coordinates to US states/territories. The function is also easily scalable for non-US lat/long coordinates.
+```{r}
+cluster <- function(latVector, longVector) {
 
+  set.seed(4747)                                                ## Set seed for reproducibility
+  
+  lat_name <- "realLat"                                         ## Name realLat column
+  long_name <- "realLong"                                       ## Name realLong column
+  latlong <- data.frame(latVector, longVector)                  ## Initialize new data frame with lat and long params
+  names(latlong) <- c(lat_name, long_name)                      ## Apply names to frame
+  
+  latlongCluster <- kmeans(latlong, 10, nstart = 10)            ## Run k-means clustering with n centroids and nstart CV's
+  
+  group_lat <- "GroupLat"                                       ## Name GroupLat column
+  group_long <- "GroupLong"                                     ## Name GroupLong column
+  latlongCenterData <- data.frame(latlongCluster$centers)       ## Initialize data frame with centers
+  names(latlongCenterData) <- c(group_lat, group_long)          ## Apply names to frame
+  
+  latlongCenterData$clusterCenter <- 
+    apply(latlongCenterData, 1, paste, collapse = ",")          ## Combine latlongCenterData columns into a comma seperated value
+  
+  group_name <- "GroupNumber"                                   ## Name GroupNumber column
+  resultData <- data.frame(latlongCluster$cluster)              ## Initialize data frame with kmeans clusters (region values)
+  names(resultData) <- c(group_name)                            ## Apply names to frame
+  
+  resultData <- resultData %>%
+    mutate(LatLongCenter = 
+             latlongCenterData$clusterCenter[GroupNumber])      ## Get the appropriate centroid location for each region number
+  
+  resultData$cluster <- 
+    apply(resultData, 1, paste, collapse = ",")                 ## Create a new column `cluster` columns collapsed together
+  
+  return(resultData$cluster)                                    ## Return the comma seperated cluster data as a vector
+}
+```
+
+
+#### Aggregating Master Data Set
 The code chunk below cleans, merges, and computes the master data frame for terrorist and temperature data in the UNITED STATES.
 ```{r}
 ## Get and clean only US terrorist attacks
@@ -149,42 +187,6 @@ dim(mergedTempTerrorismData)
 ```
 
 
-```{r}
-
-cluster <- function(latVector, longVector) {
-
-  lat_name <- "realLat"                                         ## Name Lat column
-  long_name <- "realLong"                                       ## Name Long column
-  latlong <- data.frame(latVector, longVector)
-  names(latlong) <- c(lat_name, long_name)
-  
-  latlongCluster <- kmeans(latlong, 10, nstart = 10)            ## Run k-means clustering with n centroids and nstart CV's
-  
-  group_lat <- "GroupLat"
-  group_long <- "GroupLong"
-  latlongCenterData <- data.frame(latlongCluster$centers) 
-  names(latlongCenterData) <- c(group_lat, group_long)
-  
-  latlongCenterData$clusterCenter <- 
-    apply(latlongCenterData, 1, paste, collapse = ",")
-  
-  group_name <- "GroupNumber"
-  resultData <- data.frame(latlongCluster$cluster) 
-  names(resultData) <- c(group_name)
-  
-  resultData <- resultData %>%
-    mutate(LatLongCenter = 
-             latlongCenterData$clusterCenter[GroupNumber])
-  
-  ## Create a new column `cluster` with 
-  ## the three columns collapsed together
-  resultData$cluster <- 
-    apply(resultData, 1, paste, collapse = ",")
-  
-  return(resultData$cluster)
-}
-
-```
 
 
 
