@@ -64,7 +64,7 @@ dim(temperatureData)
 
 **Some important features (variables) in the terrorism and temperature data sets**
 
-#### Terrorism Set (From url...)
+#### Terrorism Set (https://www.kaggle.com/START-UMD/gtd/data)
 * Event id
 * Date
 * Country
@@ -75,7 +75,7 @@ dim(temperatureData)
 * Weapon type
 * Number killed
 
-#### Temperature Set (From url...)
+#### Temperature Set (https://www.kaggle.com/berkeleyearth/climate-change-earth-surface-temperature-data/data)
 * Date
 * Average Temperature (of day)
 * City
@@ -149,7 +149,9 @@ usaTemperatureData <- temperatureData %>%
   mutate(city_char = str_to_lower(as.character(City))) %>%           ## Create new city column as character type
   mutate(month = month(as.POSIXlt(dateLub, format="%d/%m/%Y"))) %>%  ## Create a new month column
   mutate(year = year(as.POSIXlt(dateLub, format="%d/%m/%Y"))) %>%    ## Create a new year column
-  mutate(month_year = paste(month, year))                            ## Create new month, year column (M YYYY)
+  mutate(month_year = paste(month, year)) %>%                        ## Create new month, year column (M YYYY)
+  mutate(AverageTemperature = 
+           as.numeric(as.character(AverageTemperature)))             ## Type of AverageTemperature is numeric
   
 ## Uncomment to view head and dimension of cleaned usaTemperatureData
 #head(usaTemperatureData)
@@ -182,10 +184,16 @@ mergedTempTerrorismData <- mergedTempTerrorismData[,c("month_year", "month.x", "
   mutate(region = cluster(realLat, realLong)) %>%                                           ## Get comma seperated region cluster (r,lat,long)
   separate(region, sep=",", into=c("Region", "RegionLat", "RegionLong"), convert=TRUE)      ## Seperate comma-seperated data into the 3 columns
   
+
+## Create additional explanatory variables for mergedTempTerrorismData
+mergedTempTerrorismData <- mergedTempTerrorismData %>%
+  group_by(Region) %>%
+  group_by(month.x) %>%
+  mutate(AvgTempReg = mean(AverageTemperature))                                             ## Compute average temperature per month per region
   
 
 ## Uncomment to view head and dimension of cleaned mergedTempTerrorismData
-head(mergedTempTerrorismData)
+head(mergedTempTerrorismData,20)
 dim(mergedTempTerrorismData)
 
 ```
