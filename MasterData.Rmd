@@ -1,3 +1,236 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:ae5fce5fd0e20c215d5e7b989ad9a65425a1f0bb00db91e0a74a03fc8d481169
-size 8451
+
+---
+title: Extreme Weather and Terrorism
+author: Bradley Druzinsky and Connor Ford
+output: html_document
+---
+
+Import/install necessary packages:
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(lubridate)
+library(plyr)
+library(stringr)
+library(sp)
+require(plyr)
+require(dplyr)
+require(tidyr)
+library(ggmap)
+library(sp)
+library(maps)
+library(maptools)
+```
+
+
+Import the Terrorism and Temperature data from split csv's:
+```{r}
+## Aggregating .csv's
+read <- function(path) {
+  read.csv(path,header=F,sep=",", fileEncoding="latin1")
+}
+
+## Load data from .csv's
+load_data <- function(path) { 
+  files <- dir(path, pattern = '\\.csv', full.names = TRUE)
+  tables <- lapply(files, read)
+  rbind.fill(tables)
+}
+
+## master data tables
+terrorismData <- load_data("./TerrorismData")
+temperatureData <- load_data("./TemperatureData")
+
+## make first row the header
+names(terrorismData) <- as.matrix(terrorismData[1, ])
+names(temperatureData) <- as.matrix(temperatureData[1, ])
+
+terrorismData <- terrorismData[-1, ]
+temperatureData <- temperatureData[-1, ]
+
+terrorismData[] <- lapply(terrorismData, function(x) type.convert(as.character(x)))
+temperatureData[] <- lapply(temperatureData, function(x) type.convert(as.character(x)))
+```
+
+View the initial datasets
+```{r}
+## View head and dimensions of Terrorism Data
+head(terrorismData)
+dim(terrorismData)
+
+## View head and dimensions of Temperature Data
+head(temperatureData)
+dim(temperatureData)
+```
+
+**Some important features (variables) in the terrorism and temperature data sets**
+
+### Terrorism Set (From url...)
+* Event id
+* Date
+* Country
+* City
+* Latitude, Longitude
+* Summary (of attack)
+* Attack type (hostage, assassination, bombing, etc..)
+* Weapon type
+* Number killed
+
+### Temperature Set (From url...)
+* Date
+* Average Temperature (of day)
+* City
+* Country
+* Latitude, Longitude
+
+
+The code chunk below cleans, merges, and computes the master data frame for terrorist and temperature data in the UNITED STATES.
+```{r}
+## Get and clean only US terrorist attacks
+usaTerrorismData <- terrorismData %>%
+  filter(country == 217)  %>%                                        ## Filter for country == USA
+  unite(date1, iyear,imonth,iday, sep="-") %>%                       ## Unite seperate year, month, and day columns into one (y-m-d)
+  mutate(dateLub = ymd(date1)) %>%                                   ## Convert date into 'Lubridate' (YYYY-MM-DD)
+  filter(!is.na(dateLub))  %>%                                       ## Filter out observations with missing dates (failed to parse)
+  mutate(city_char = str_to_lower(as.character(city))) %>%           ## Create new city column as character type
+  mutate(month = month(as.POSIXlt(dateLub, format="%d/%m/%Y"))) %>%  ## Create a new month column
+  mutate(year = year(as.POSIXlt(dateLub, format="%d/%m/%Y"))) %>%    ## Create a new year column
+  mutate(month_year = paste(month, year))                            ## Create new month, year column (M YYYY)
+  
+## Uncomment to view head and dimension of cleaned usaTerrorismData
+#head(usaTerrorismData)
+#dim(usaTerrorismData)
+
+
+## Get and clean only US temperatures
+usaTemperatureData <- temperatureData %>%
+  filter(Country == "United States") %>%                             ## Filter for country == USA
+  mutate(dateLub = ymd(dt)) %>%                                      ## Convert date into 'Lubridate' (YYYY-MM-DD)
+  filter(!is.na(dateLub)) %>%                                        ## Filter out observations with missing dates (failed to parse)
+  filter(dateLub >= as.Date("1970-01-01")) %>%                       ## Filter only for data after 1/1/1970 (when Terrorism data begins)
+  filter(!is.na(AverageTemperature)) %>%                             ## Remove observations with missing temperatures
+  mutate(city_char = str_to_lower(as.character(City))) %>%           ## Create new city column as character type
+  mutate(month = month(as.POSIXlt(dateLub, format="%d/%m/%Y"))) %>%  ## Create a new month column
+  mutate(year = year(as.POSIXlt(dateLub, format="%d/%m/%Y"))) %>%    ## Create a new year column
+  mutate(month_year = paste(month, year))                            ## Create new month, year column (M YYYY)
+  
+## Uncomment to view head and dimension of cleaned usaTemperatureData
+#head(usaTemperatureData)
+#dim(usaTemperatureData)
+
+
+## Merge temperature data with terrorism data by city_char and month_year
+## As a result, for every city we should also have every month since 1970 (exlcuding missing data)
+## (Important note: There are ~200 unique cities in our temperature data and ~700 in our terrorism data.
+## As a result, when merging on cities, we lose about half of our terrorist attacks.)
+mergedTempTerrorismData <- left_join(usaTemperatureData, usaTerrorismData, by=c("city_char", "month_year"))
+
+## Uncomment to view head and dimension of mergedTempTerrorismData
+#head(mergedTempTerrorismData)
+#dim(mergedTempTerrorismData)
+
+  
+## Clean mergedTempTerrorismData 
+mergedTempTerrorismData <- mergedTempTerrorismData[,c("month_year", "month.x", "year.x",
+                                                      "city_char", "AverageTemperature", 
+                                                      "Latitude", "Longitude", "nkill", 
+                                                      "eventid")] %>%                       ## Select explanatory variables
+  mutate(isAttack = as.integer(!is.na(eventid))) %>%                                        ## Create binary isAttack variable
+  select(-eventid) %>%                                                                      ## Remove eventid variable 
+  mutate(realLong = -1* as.numeric(str_sub(Longitude, 1, -2))) %>%                          ## Parse Longitude column
+  mutate(realLat = as.numeric(str_sub(Latitude, 1, -2))) %>%                                ## Parse Latitude column
+  filter(!is.na(realLat)) %>%                                                               ## Remove missing Latitudes
+  filter(!is.na(realLong)) %>%                                                              ## Remove missing Longitudes
+  mutate(region = cluster(realLat, realLong))                                               ## Get comma seperated region cluster (r,lat,long)
+
+## Uncomment to view head and dimension of cleaned mergedTempTerrorismData
+head(mergedTempTerrorismData)
+dim(mergedTempTerrorismData)
+
+```
+
+
+```{r}
+
+cluster <- function(latVector, longVector) {
+
+  lat_name <- "realLat"                                         ## Name Lat column
+  long_name <- "realLong"                                       ## Name Long column
+  latlong <- data.frame(latVector, longVector)
+  names(latlong) <- c(lat_name, long_name)
+  
+  latlongCluster <- kmeans(latlong, 10, nstart = 10)            ## Run k-means clustering with n centroids and nstart CV's
+  
+  group_lat <- "GroupLat"
+  group_long <- "GroupLong"
+  latlongCenterData <- data.frame(latlongCluster$centers) 
+  names(latlongCenterData) <- c(group_lat, group_long)
+  
+  latlongCenterData$clusterCenter <- 
+    apply(latlongCenterData, 1, paste, collapse = ",")
+  
+  group_name <- "GroupNumber"
+  resultData <- data.frame(latlongCluster$cluster) 
+  names(resultData) <- c(group_name)
+  
+  resultData <- resultData %>%
+    mutate(LatLongCenter = 
+             latlongCenterData$clusterCenter[GroupNumber])
+  
+  ## Create a new column `cluster` with 
+  ## the three columns collapsed together
+  resultData$cluster <- 
+    apply(resultData, 1, paste, collapse = ",")
+  
+  return(resultData$cluster)
+}
+
+```
+
+
+
+
+
+
+Visualizations:
+```{r}
+
+
+
+
+
+library(plotly)
+library(shiny)
+
+terroristAttacks <- usaTerrorismData %>% filter(provstate != "Puerto Rico") %>% filter(provstate != "Alaska") %>% filter(provstate != "Hawaii") %>% filter(longitude < 0)
+
+terroristAttacksByState <- terroristAttacks %>% group_by(provstate) %>% summarise(sum(nkill))
+
+
+terroristAttacksByState$hover <- with(terroristAttacksByState, paste(provstate, '<br>', "Number Killed", nkill))
+# give state boundaries a white border
+l <- list(color = toRGB("white"), width = 2)
+# specify some map projection/options
+g <- list(
+  scope = 'usa',
+  projection = list(type = 'albers usa'),
+  showlakes = TRUE,
+  lakecolor = toRGB('white')
+)
+
+p <- plot_geo(terroristAttacksByState, locationmode = 'USA-states') %>%
+  add_trace(
+    z = ~ nkill, text = ~hover, locations = ~code,
+    color = ~nkill, colors = 'Reds'
+  ) %>%
+  colorbar(title = "Deaths") %>%
+  layout(
+    title = 'Deaths From Terrorist Attacks Since 1970',
+    geo = g
+  )
+
+
+usa <- map_data("usa") # we already did this, but we can do it again
+ggplot() + geom_polygon(data = usa, aes (x = long, y = lat), fill = "white") + geom_point(data = terroristAttacks, aes(x=longitude, y = latitude), color = "red") + coord_fixed(1.3)
+```
+
+
