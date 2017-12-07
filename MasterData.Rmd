@@ -94,7 +94,7 @@ cluster <- function(latVector, longVector) {
   latlong <- data.frame(latVector, longVector)                  ## Initialize new data frame with lat and long params
   names(latlong) <- c(lat_name, long_name)                      ## Apply names to frame
   
-  latlongCluster <- kmeans(latlong, 10, nstart = 10)            ## Run k-means clustering with n centroids and nstart CV's
+  latlongCluster <- kmeans(latlong, 20, nstart = 10)            ## Run k-means clustering with n centroids and nstart CV's
   
   group_lat <- "GroupLat"                                       ## Name GroupLat column
   group_long <- "GroupLong"                                     ## Name GroupLong column
@@ -173,12 +173,16 @@ mergedTempTerrorismData <- mergedTempTerrorismData[,c("month_year", "month.x", "
                                                       "Latitude", "Longitude", "nkill", 
                                                       "eventid")] %>%                       ## Select explanatory variables
   mutate(isAttack = as.integer(!is.na(eventid))) %>%                                        ## Create binary isAttack variable
+  mutate(nkill = ifelse(is.na(nkill), 0, nkill)) %>%                                        ## Convert NA's to 0's in nkill
   select(-eventid) %>%                                                                      ## Remove eventid variable 
   mutate(realLong = -1* as.numeric(str_sub(Longitude, 1, -2))) %>%                          ## Parse Longitude column
   mutate(realLat = as.numeric(str_sub(Latitude, 1, -2))) %>%                                ## Parse Latitude column
   filter(!is.na(realLat)) %>%                                                               ## Remove missing Latitudes
   filter(!is.na(realLong)) %>%                                                              ## Remove missing Longitudes
-  mutate(region = cluster(realLat, realLong))                                               ## Get comma seperated region cluster (r,lat,long)
+  mutate(region = cluster(realLat, realLong)) %>%                                           ## Get comma seperated region cluster (r,lat,long)
+  separate(region, sep=",", into=c("Region", "RegionLat", "RegionLong"), convert=TRUE)      ## Seperate comma-seperated data into the 3 columns
+  
+  
 
 ## Uncomment to view head and dimension of cleaned mergedTempTerrorismData
 head(mergedTempTerrorismData)
