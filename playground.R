@@ -163,3 +163,65 @@ changeLatLong <- function(x) {
   return(res)
 }
 
+
+
+
+
+#Function to convert vectors of Longitude and Latitude to the appropriate State
+
+
+# The single argument to this function, pointsDF, is a data.frame in which:
+#   - column 1 contains the longitude in degrees (negative in the US)
+#   - column 2 contains the latitude in degrees
+
+latlong2state <- function(pointsDF) {
+# Prepare SpatialPolygons object with one SpatialPolygon
+# per state (plus DC, minus HI & AK)
+states <- map('state', fill=TRUE, col="transparent", plot=FALSE)
+IDs <- sapply(strsplit(states$names, ":"), function(x) x[1])
+states_sp <- map2SpatialPolygons(states, IDs=IDs,
+proj4string=CRS("+proj=longlat +datum=WGS84"))
+
+# Convert pointsDF to a SpatialPoints object 
+pointsSP <- SpatialPoints(pointsDF, 
+proj4string=CRS("+proj=longlat +datum=WGS84"))
+
+# Use 'over' to get _indices_ of the Polygons object containing each point 
+indices <- over(pointsSP, states_sp)
+
+# Return the state names of the Polygons object containing each point
+stateNames <- sapply(states_sp@polygons, function(x) x@ID)
+stateNames[indices]
+}
+
+
+
+#Another attempt at getting state using parallel processing
+
+library(foreach)
+library(doParallel)
+
+getState <- function(lat, long) {
+
+#setup parallel backend to use many processors
+cores = detectCores()
+cl <- makeCluster(cores[1]-1) #not to overload computer
+registerDoParallel(cl)
+
+finalMatrix <- foreach(i=1:length(lat)) %dopar% {
+newState <- revgeocode(c(long[i], lat[i]), output = "more")$administrative_area_level_1
+result <- append(result, newState)
+}
+#stop cluster
+stopCluster(cl)
+}
+
+getStates <- function(lat, long) {
+result <- c()
+for (i in 1:10000) {
+result <- append(result, revgeocode(c(-100.5, 45), output = "more")$administrative_area_level_1)
+}
+return(result)
+}
+
+
