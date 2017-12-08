@@ -258,7 +258,6 @@ neuralNet <-neuralnet(isAttack~month.x+Region+TempDifference+
 
 plot(neuralNet)                                                                 ## Plot the neural network
 
-
 plot.nnet(neuralNet, cex.val = 0.5)
 
 ```
