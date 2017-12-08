@@ -196,16 +196,16 @@ mergedTempTerrorismData <- mergedTempTerrorismData %>%
 
 ## Create additional explanatory variables for mergedTempTerrorismData
 mergedTempTerrorismData <- mergedTempTerrorismData %>%
-  group_by(Region) %>%
-  group_by(year.x) %>%
-  
-  mutate(AttacksInYear = sum(isAttack))
+  group_by(Region, year.x) %>%                                                              ## Group by clustered Region and year
+  mutate(AttacksInYear = sum(isAttack)) %>%                                                 ## Sum the number of attacks in region in year
+  ungroup(Region, year.x)                                                                   ## Ungroup grouping
   
 
-## Uncomment to view head and dimension of cleaned mergedTempTerrorismData
-head(mergedTempTerrorismData,14)
+## Uncomment to view head, dimension, and random sampling of cleaned mergedTempTerrorismData
+head(mergedTempTerrorismData,12)
 dim(mergedTempTerrorismData)
-sample_n(mergedTempTerrorismData, 10)
+mergedTempTerrorismData[sample(nrow(mergedTempTerrorismData), 10), ]
+
 
 ```
 
