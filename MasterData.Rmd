@@ -197,14 +197,16 @@ mergedTempTerrorismData <- mergedTempTerrorismData %>%
 ## Create additional explanatory variables for mergedTempTerrorismData
 mergedTempTerrorismData <- mergedTempTerrorismData %>%
   group_by(Region, year.x) %>%                                                              ## Group by clustered Region and year
-  mutate(AttacksInYearInReg = sum(isAttack)) %>%                                                 ## Sum the number of attacks in region in year
-  group_by(Region) %>%
-  mutate(AvgAttacksPerYearInReg = mean(AttacksInYearInReg)) %>%
-  ungroup(Region, year.x)
-
-mergedTempTerrorismData <- mergedTempTerrorismData %>%
-  group_by(Region) %>%
-  mutate(AttacksPrevYearInReg = lag(AttacksInYearInReg, n=30, order_by = year.x, default=AvgAttacksPerYearInReg))
+  mutate(AttacksInYearInReg = sum(isAttack)) %>%                                            ## Sum the # of attacks in region in year
+  mutate(nKilledInYearInReg = sum(nkill)) %>%                                               ## Sum the # of kills in region in year
+  group_by(Region) %>%                                                                      ## Regroup by just Region
+  mutate(AvgAttacksPerYearInReg = mean(AttacksInYearInReg)) %>%                             ## Compute mean attacks per year in every region
+  mutate(AvgNKilledPerYearInReg = mean(nKilledInYearInReg)) %>%                             ## Compute mean # killed per year in every region
+  group_by(city_char) %>%                                                                   ## Regroup by just city_char
+  mutate(AttacksPrevYearInReg = 
+           ifelse(year.x == 1970, AvgAttacksPerYearInReg, lag(AttacksInYearInReg,12))) %>%  ## Compute # of attacks in prev. year in region
+  mutate(nKilledPrevYearInReg = 
+           ifelse(year.x == 1970, AvgNKilledPerYearInReg, lag(nKilledInYearInReg,12)))      ## Compute # killed in prev. year in region
 
 ## Uncomment to view head, dimension, and random sampling of cleaned mergedTempTerrorismData
 head(mergedTempTerrorismData,200)
