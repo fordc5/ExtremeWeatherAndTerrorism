@@ -145,13 +145,14 @@ usaTemperatureData <- temperatureData %>%
   mutate(dateLub = ymd(dt)) %>%                                      ## Convert date into 'Lubridate' (YYYY-MM-DD)
   filter(!is.na(dateLub)) %>%                                        ## Filter out observations with missing dates (failed to parse)
   filter(dateLub >= as.Date("1970-01-01")) %>%                       ## Filter only for data after 1/1/1970 (when Terrorism data begins)
-  filter(!is.na(AverageTemperature)) %>%                             ## Remove observations with missing temperatures
   mutate(city_char = str_to_lower(as.character(City))) %>%           ## Create new city column as character type
   mutate(month = month(as.POSIXlt(dateLub, format="%d/%m/%Y"))) %>%  ## Create a new month column
   mutate(year = year(as.POSIXlt(dateLub, format="%d/%m/%Y"))) %>%    ## Create a new year column
   mutate(month_year = paste(month, year)) %>%                        ## Create new month, year column (M YYYY)
   mutate(AverageTemperature = 
-           as.numeric(as.character(AverageTemperature)))             ## Type of AverageTemperature is numeric
+           as.numeric(as.character(AverageTemperature)))  %>%        ## Type of AverageTemperature is numeric
+  filter(!is.na(AverageTemperature))                                 ## Remove observations with missing temperatures
+
   
 ## Uncomment to view head and dimension of cleaned usaTemperatureData
 #head(usaTemperatureData)
@@ -182,25 +183,46 @@ mergedTempTerrorismData <- mergedTempTerrorismData[,c("month_year", "month.x", "
   filter(!is.na(realLat)) %>%                                                               ## Remove missing Latitudes
   filter(!is.na(realLong)) %>%                                                              ## Remove missing Longitudes
   mutate(region = cluster(realLat, realLong)) %>%                                           ## Get comma seperated region cluster (r,lat,long)
-  separate(region, sep=",", into=c("Region", "RegionLat", "RegionLong"), convert=TRUE)      ## Seperate comma-seperated data into the 3 columns
+  separate(region, sep=",", into=c("Region", "RegionLat", "RegionLong"), convert=TRUE) %>%  ## Seperate comma-seperated data into the 3 columns
+  select(-Latitude, -Longitude)                                                             ## Remove Latitude and Longitude char vectors
   
 
 ## Create additional explanatory variables for mergedTempTerrorismData
 mergedTempTerrorismData <- mergedTempTerrorismData %>%
   group_by(Region) %>%
   group_by(month.x) %>%
-  mutate(AvgTempReg = mean(AverageTemperature))                                             ## Compute average temperature per month per region
+  mutate(AvgTempReg = mean(AverageTemperature)) %>%                                         ## Compute average temperature per month per region
+  mutate(TempDifference = abs(AvgTempReg - AverageTemperature))                             ## Compute temperature diff b/w mean and actual
+
+## Create additional explanatory variables for mergedTempTerrorismData
+mergedTempTerrorismData <- mergedTempTerrorismData %>%
+  group_by(Region) %>%
+  group_by(year.x) %>%
+  
+  mutate(AttacksInYear = sum(isAttack))
   
 
 ## Uncomment to view head and dimension of cleaned mergedTempTerrorismData
-head(mergedTempTerrorismData,20)
+head(mergedTempTerrorismData,14)
 dim(mergedTempTerrorismData)
+sample_n(mergedTempTerrorismData, 10)
 
 ```
 
 
 
 
+Neural network data frame cleaning:
+```{r}
+
+
+```
+
+Neural network model:
+```{r}
+
+
+```
 
 
 
