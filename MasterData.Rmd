@@ -19,6 +19,10 @@ library(ggmap)
 library(sp)
 library(maps)
 library(maptools)
+library(neuralnet)
+library(devtools)
+source_url('https://gist.githubusercontent.com/fawda123/7471137/raw/466c1474d0a505ff044412703516c34f1a4684a5/nnet_plot_update.r')
+
 ```
 
 
@@ -94,7 +98,7 @@ cluster <- function(latVector, longVector) {
   latlong <- data.frame(latVector, longVector)                  ## Initialize new data frame with lat and long params
   names(latlong) <- c(lat_name, long_name)                      ## Apply names to frame
   
-  latlongCluster <- kmeans(latlong, 20, nstart = 10)            ## Run k-means clustering with n centroids and nstart CV's
+  latlongCluster <- kmeans(latlong, centers = 20, nstart = 10)  ## Run k-means clustering with centers centroids and nstart CV's
   
   group_lat <- "GroupLat"                                       ## Name GroupLat column
   group_long <- "GroupLong"                                     ## Name GroupLong column
@@ -175,6 +179,7 @@ mergedTempTerrorismData <- mergedTempTerrorismData[,c("month_year", "month.x", "
                                                       "city_char", "AverageTemperature", 
                                                       "Latitude", "Longitude", "nkill", 
                                                       "eventid")] %>%                       ## Select explanatory variables
+  filter(year.x < 2016) %>%                                                                 ## Filter for a couple typos in years
   mutate(isAttack = as.integer(!is.na(eventid))) %>%                                        ## Create binary isAttack variable
   mutate(nkill = ifelse(is.na(nkill), 0, nkill)) %>%                                        ## Convert NA's to 0's in nkill
   select(-eventid) %>%                                                                      ## Remove eventid variable 
@@ -189,8 +194,7 @@ mergedTempTerrorismData <- mergedTempTerrorismData[,c("month_year", "month.x", "
 
 ## Create additional explanatory variables for mergedTempTerrorismData
 mergedTempTerrorismData <- mergedTempTerrorismData %>%
-  group_by(Region) %>%
-  group_by(month.x) %>%
+  group_by(Region, month.x) %>%                                                             ## Group by clustered Region and month
   mutate(AvgTempReg = mean(AverageTemperature)) %>%                                         ## Compute average temperature per month per region
   mutate(TempDifference = abs(AvgTempReg - AverageTemperature))                             ## Compute temperature diff b/w mean and actual
 
@@ -206,28 +210,56 @@ mergedTempTerrorismData <- mergedTempTerrorismData %>%
   mutate(AttacksPrevYearInReg = 
            ifelse(year.x == 1970, AvgAttacksPerYearInReg, lag(AttacksInYearInReg,12))) %>%  ## Compute # of attacks in prev. year in region
   mutate(nKilledPrevYearInReg = 
-           ifelse(year.x == 1970, AvgNKilledPerYearInReg, lag(nKilledInYearInReg,12)))      ## Compute # killed in prev. year in region
-
+           ifelse(year.x == 1970, AvgNKilledPerYearInReg, lag(nKilledInYearInReg,12))) %>%  ## Compute # killed in prev. year in region
+  ungroup(city_char)                                                                        ## Ungroup city_char grouping
+ 
 ## Uncomment to view head, dimension, and random sampling of cleaned mergedTempTerrorismData
-head(mergedTempTerrorismData,200)
+head(mergedTempTerrorismData,10)
 dim(mergedTempTerrorismData)
-mergedTempTerrorismData[sample(nrow(mergedTempTerrorismData), 100), ]
-
+mergedTempTerrorismData[sample(nrow(mergedTempTerrorismData), 10),]
 
 ```
 
 
 
-
-Neural network data frame cleaning:
+Now we must clean our master data for a neural network. This includes filtering out insignificant or unnecessary variables (both categorical and some numerical). We must also check to make sure our data frame contains no missing (na) values. 
 ```{r}
+## First check to make sure we do not have any missing values in our data frame.
+## Uncmment below to run and display the check.
+#apply(mergedTempTerrorismData,2,function(x) sum(is.na(x)))
 
+nnData <- mergedTempTerrorismData %>%
+  select(month.x, isAttack, Region, TempDifference, AttacksPrevYearInReg, nKilledPrevYearInReg)
+
+
+## Uncomment to view head and dimension of nnData
+head(nnData,10)
+#dim(nnData)
 
 ```
 
 Neural network model:
 ```{r}
+set.seed(4747)
 
+max = apply(nnData, 2, max)
+min = apply(nnData, 2, min)
+scaledData = as.data.frame(scale(nnData, center=min, scale=max-min))
+
+sampleSize = 0.3 * nrow(scaledData)                                            ## Sample from 2/3 of the observations
+index = sample(seq_len(nrow(scaledData)), size=sampleSize)
+
+trainNNData <- scaledData[index,]
+testNNData <- scaledData[-index,]
+
+neuralNet <-neuralnet(isAttack~month.x+Region+TempDifference+
+                      AttacksPrevYearInReg+nKilledPrevYearInReg, 
+                      trainNNData, hidden=3, linear.output=T)
+
+plot(neuralNet)                                                                 ## Plot the neural network
+
+
+plot.nnet(neuralNet, cex.val = 0.5)
 
 ```
 
