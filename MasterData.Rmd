@@ -22,6 +22,7 @@ library(maptools)
 library(neuralnet)
 library(devtools)
 source_url('https://gist.githubusercontent.com/fawda123/7471137/raw/466c1474d0a505ff044412703516c34f1a4684a5/nnet_plot_update.r')
+library(NeuralNetTools)
 
 ```
 
@@ -246,7 +247,7 @@ max = apply(nnData, 2, max)
 min = apply(nnData, 2, min)
 scaledData = as.data.frame(scale(nnData, center=min, scale=max-min))
 
-sampleSize = 0.3 * nrow(scaledData)                                            ## Sample from 2/3 of the observations
+sampleSize = 0.5 * nrow(scaledData)                                            ## Sample from 2/3 of the observations
 index = sample(seq_len(nrow(scaledData)), size=sampleSize)
 
 trainNNData <- scaledData[index,]
@@ -254,7 +255,7 @@ testNNData <- scaledData[-index,]
 
 neuralNet <-neuralnet(isAttack~month.x+Region+TempDifference+
                       AttacksPrevYearInReg+nKilledPrevYearInReg, 
-                      trainNNData, hidden=3, linear.output=T)
+                      trainNNData, hidden=3, linear.output=TRUE)
 
 plot(neuralNet)                                                                 ## Plot the neural network
 
@@ -262,8 +263,21 @@ plot.nnet(neuralNet, cex.val = 0.5)
 
 ```
 
+Assess the neural network:
+```{r}
+predictTestNN <- compute(neuralNet, testNNData[c("month.x", "Region", "TempDifference", "AttacksPrevYearInReg", "nKilledPrevYearInReg")])
+
+results <- data.frame(actual=testNNData$isAttack, prediction=predictTestNN$net.result)
+results
+roundedresults<-sapply(results,round,digits=0)
+roundedresultsdf<-data.frame(roundedresults)
+attach(roundedresultsdf)
+table(actual, prediction)
 
 
+#predict_testNN <- (predict_testNN$net.result * (max(data$rating) - min(data$rating))) + min(data$rating)
+garson(neuralNet)
+```
 
 Visualizations:
 ```{r}
