@@ -226,7 +226,7 @@ mergedTempTerrorismData[sample(nrow(mergedTempTerrorismData), 10),]
 Now we must clean our master data for a neural network. This includes filtering out insignificant or unnecessary variables (both categorical and some numerical). We must also check to make sure our data frame contains no missing (na) values. 
 ```{r}
 ## First check to make sure we do not have any missing values in our data frame.
-## Uncmment below to run and display the check.
+## Uncomment below to run and display the check.
 #apply(mergedTempTerrorismData,2,function(x) sum(is.na(x)))
 
 nnData <- mergedTempTerrorismData %>%
@@ -247,7 +247,7 @@ max = apply(nnData, 2, max)                                                    #
 min = apply(nnData, 2, min)                                                    ## Get min of data   
 scaledData = as.data.frame(scale(nnData, center=min, scale=max-min))           ## scale data from min to max
 
-sampleSize = 0.5 * nrow(scaledData)                                            ## Sample from 2/3 of the observations
+sampleSize = 0.05 * nrow(scaledData)                                            ## Sample from 2/3 of the observations
 index = sample(seq_len(nrow(scaledData)), size=sampleSize)                     ## Compute index sample
 
 trainNNData <- scaledData[index,]                                              ## Get training set
@@ -272,15 +272,111 @@ predictTestNN <- compute(neuralNet, testNNData[c("month.x", "Region",
 
 results <- data.frame(actual=testNNData$isAttack, 
                       prediction=predictTestNN$net.result)
-results                                                                        ## Display results in a data frame
+head(results)                                                                  ## Display head of results in a data frame
 
 roundedresults<-sapply(results,round,digits=0)
 roundedresultsdf<-data.frame(roundedresults)
 attach(roundedresultsdf)
-table(actual, prediction)
+table(actual, prediction)                                                      ## Table of predictions v actual
+
+results %>%
+  group_by(actual) %>%
+  summarise(mean(prediction))                                                  ## Compute average probability predication for an attack vs non-attack
+
 
 garson(neuralNet)                                                              ## Plot variable importance
 ```
+
+
+That did alright, but now let's try to predict whether a terrorist attack is going to happen in a given year, rather than a given day in a region. This is going to require a bit of data re-wrangling to get the appropriate explanatory variables.
+
+```{r}
+# want additional isAttackYear, TempDifferenceYear
+mergedTempTerrorismDataYear <- mergedTempTerrorismData %>%
+  group_by(Region, year.x) %>%                                                  ## Group by Region and year.x
+  mutate(isAttackYear = ifelse(sum(isAttack) > 0, 1, 0)) %>%                    ## Create isAttackYear var, was there an attack in year in reg?
+  mutate(AvgTempRegYear = mean(AverageTemperature)) %>%                         ## Create AvgTempRegYear var, avg temp in reg in year
+  group_by(Region) %>%                                                          ## Regroup by just Region
+  mutate(HistAvgTemp = mean(AverageTemperature)) %>%                            ## Compute HistAvgTemp per region over all years
+  group_by(Region, year.x) %>%                                                  ## Regroup by Region and year.x
+  mutate(TempDifferenceYear = abs(HistAvgTemp - AvgTempRegYear)) %>%            ## Compute the difference in temp between year and hist avg
+  ungroup(Region, year.x)                                                       ## Ungroup all groupings
+
+## Uncomment to view head and dimension of mergedTempTerrorismDataYear
+#head(mergedTempTerrorismDataYear,20)
+#dim(mergedTempTerrorismDataYear)
+
+```
+
+
+Again we must clean our data for the neural net;
+```{r}
+## First check to make sure we do not have any missing values in our data frame.
+## Uncomment below to run and display the check.
+#apply(mergedTempTerrorismDataYear,2,function(x) sum(is.na(x)))
+
+nnDataYear <- mergedTempTerrorismDataYear %>%
+  select(year.x, isAttackYear, Region, TempDifferenceYear, 
+         AttacksPrevYearInReg, nKilledPrevYearInReg)                           ## Select explanatory variables
+
+nnDataYear <- nnDataYear %>%
+  group_by(Region, year.x) %>%
+  summarise_each(funs(mean))
+
+## Uncomment to view head and dimension of nnData
+#head(nnDataYear,10)
+#dim(nnDataYear)
+
+```
+
+Again, we are going to train another neural net model
+```{r}
+set.seed(4747)                                                                 ## Set seed for neural net reproducibility
+
+max = apply(nnDataYear, 2, max)                                                    ## Get max of data
+min = apply(nnDataYear, 2, min)                                                    ## Get min of data   
+scaledDataYear = as.data.frame(scale(nnDataYear, center=min, scale=max-min))           ## scale data from min to max
+
+sampleSize = 0.67 * nrow(scaledDataYear)                                            ## Sample from 2/3 of the observations
+index = sample(seq_len(nrow(scaledDataYear)), size=sampleSize)                     ## Compute index sample
+
+trainNNDataYear <- scaledDataYear[index,]                                              ## Get training set
+testNNDataYear <- scaledDataYear[-index,]                                              ## Get test set
+
+neuralNetYear <-neuralnet(isAttackYear~Region+TempDifferenceYear+
+                      AttacksPrevYearInReg+nKilledPrevYearInReg, 
+                      trainNNDataYear, hidden=3, linear.output=TRUE)               ## Fit neural network on data
+
+plot(neuralNetYear)                                                                ## Plot the neural network
+
+plot.nnet(neuralNetYear, cex.val = 0.5)                                            ## Plot the neural network with a nicer library
+
+```
+
+Assess the new neural network on year:
+```{r}
+predictTestNNYear <- compute(neuralNetYear, testNNDataYear[c("Region", 
+                                                 "TempDifferenceYear", 
+                                                 "AttacksPrevYearInReg", 
+                                                 "nKilledPrevYearInReg")])     ## Compute test results in the neural net
+
+resultsYear <- data.frame(actual=testNNDataYear$isAttackYear, 
+                      prediction=predictTestNNYear$net.result)
+head(resultsYear  )                                                            ## Display head of results in a data frame
+
+roundedresults<-sapply(resultsYear,round,digits=0)
+roundedresultsdf<-data.frame(roundedresults)
+attach(roundedresultsdf)
+table(actual, prediction)                                                      ## Table of predictions v actual
+
+resultsYear %>%
+  group_by(actual) %>%
+  summarise(mean(prediction))                                                  ## Compute average probability predication for an attack vs non-attack
+
+
+garson(neuralNetYear)                                                          ## Plot variable importance
+```
+
 
 
 
