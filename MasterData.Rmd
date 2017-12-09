@@ -321,7 +321,7 @@ nnDataYear <- mergedTempTerrorismDataYear %>%
 
 nnDataYear <- nnDataYear %>%
   group_by(Region, year.x) %>%
-  summarise_each(funs(mean))
+  summarise_all(funs(mean))
 
 ## Uncomment to view head and dimension of nnData
 #head(nnDataYear,10)
@@ -382,7 +382,7 @@ garson(neuralNetYear)                                                          #
 
 
 Visualizations:
-```{r}
+```{r, eval=FALSE}
 library(plotly)
 library(shiny)
 
@@ -449,6 +449,7 @@ p <- plot_geo(visualizationsAttacks, locationmode = 'USA-states') %>%
  
 p
 
+visualizationsAttacks <- usaTerrorismData %>% filter(provstate != "Puerto Rico") %>% filter(provstate != "Alaska") %>% filter(provstate != "Hawaii")  %>% filter(provstate != "New York") %>% filter(longitude < 0) %>% filter(!is.na(nkill))
 
 g <- list(
   scope = 'usa',
@@ -469,12 +470,11 @@ p <- plot_geo(visualizationsAttacks, lat = ~latitude, lon = ~longitude) %>%
     title = 'Attacks', geo = g
   )
 
-
 p
 ```
 
 
-```{r}
+```{r, eval=FALSE}
  # require(devtools)
  # install_github('ramnathv/rCharts@dev')
  # install_github('ramnathv/rMaps')

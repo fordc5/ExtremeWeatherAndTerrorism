@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Bradley Druzinsky and Connor Ford" />
+
+
+<title>Extreme Weather and Terrorism</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-1.1/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-1.1/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Terrorism and Extreme Weather</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="MasterData.html">Analysis</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Extreme Weather and Terrorism</h1>
+<h4 class="author"><em>Bradley Druzinsky and Connor Ford</em></h4>
+
+</div>
+
+
+<p>Import/install necessary packages:</p>
+<p>Import the Terrorism and Temperature data from split csv’s:</p>
+<pre class="r"><code>## Aggregating .csv&#39;s
+read &lt;- function(path) {
+  read.csv(path,header=F,sep=&quot;,&quot;, fileEncoding=&quot;latin1&quot;)
+}
+
+## Load data from .csv&#39;s
+load_data &lt;- function(path) { 
+  files &lt;- dir(path, pattern = &#39;\\.csv&#39;, full.names = TRUE)
+  tables &lt;- lapply(files, read)
+  rbind.fill(tables)
+}
+
+## master data tables
+terrorismData &lt;- load_data(&quot;./TerrorismData&quot;)
+temperatureData &lt;- load_data(&quot;./TemperatureData&quot;)
+
+## make first row the header
+names(terrorismData) &lt;- as.matrix(terrorismData[1, ])
+names(temperatureData) &lt;- as.matrix(temperatureData[1, ])
+
+terrorismData &lt;- terrorismData[-1, ]
+temperatureData &lt;- temperatureData[-1, ]
+
+terrorismData[] &lt;- lapply(terrorismData, function(x) type.convert(as.character(x)))
+temperatureData[] &lt;- lapply(temperatureData, function(x) type.convert(as.character(x)))</code></pre>
+<p>View the initial datasets</p>
+<pre class="r"><code>## View head and dimensions of Terrorism Data
+head(terrorismData)</code></pre>
+<pre><code>##       eventid iyear imonth iday approxdate extended resolution country
+## 2 1.97000e+11  1970      7    2                   0                 58
+## 3 1.97000e+11  1970      0    0                   0                130
+## 4 1.97001e+11  1970      1    0                   0                160
+## 5 1.97001e+11  1970      1    0                   0                 78
+## 6 1.97001e+11  1970      1    0                   0                101
+## 7 1.97001e+11  1970      1    1                   0                217
+##          country_txt region                  region_txt provstate
+## 2 Dominican Republic      2 Central America &amp; Caribbean          
+## 3             Mexico      1               North America          
+## 4        Philippines      5              Southeast Asia    Tarlac
+## 5             Greece      8              Western Europe    Attica
+## 6              Japan      4                   East Asia          
+## 7      United States      1               North America  Illinois
+##            city latitude longitude specificity vicinity location
+## 2 Santo Domingo 18.45679 -69.95116           1        0         
+## 3   Mexico city 19.43261 -99.13321           1        0         
+## 4       Unknown 15.47860 120.59974           4        0         
+## 5        Athens 37.98377  23.72816           1        0         
+## 6       Fukouka 33.58041 130.39636           1        0         
+## 7         Cairo 37.00511 -89.17627           1        0         
+##                                                                                                                                                                                                                                                                                                                                                    summary
+## 2                                                                                                                                                                                                                                                                                                                                                         
+## 3                                                                                                                                                                                                                                                                                                                                                         
+## 4                                                                                                                                                                                                                                                                                                                                                         
+## 5                                                                                                                                                                                                                                                                                                                                                         
+## 6                                                                                                                                                                                                                                                                                                                                                         
+## 7 1/1/1970: Unknown African American assailants fired several bullets at police headquarters in Cairo, Illinois, United States.  There were no casualties, however, one bullet narrowly missed several police officers.  This attack took place during heightened racial tensions, including a Black boycott of White-owned businesses, in Cairo Illinois.
+##   crit1 crit2 crit3 doubtterr alternative alternative_txt multiple success
+## 2     1     1     1         0          NA                        0       1
+## 3     1     1     1         0          NA                        0       1
+## 4     1     1     1         0          NA                        0       1
+## 5     1     1     1         0          NA                        0       1
+## 6     1     1     1        -9          NA                        0       1
+## 7     1     1     1         0          NA                        0       1
+##   suicide attacktype1                attacktype1_txt attacktype2
+## 2       0           1                  Assassination          NA
+## 3       0           6    Hostage Taking (Kidnapping)          NA
+## 4       0           1                  Assassination          NA
+## 5       0           3              Bombing/Explosion          NA
+## 6       0           7 Facility/Infrastructure Attack          NA
+## 7       0           2                  Armed Assault          NA
+##   attacktype2_txt attacktype3 attacktype3_txt targtype1
+## 2                          NA                        14
+## 3                          NA                         7
+## 4                          NA                        10
+## 5                          NA                         7
+## 6                          NA                         7
+## 7                          NA                         3
+##                 targtype1_txt targsubtype1
+## 2 Private Citizens &amp; Property           68
+## 3     Government (Diplomatic)           45
+## 4         Journalists &amp; Media           54
+## 5     Government (Diplomatic)           46
+## 6     Government (Diplomatic)           46
+## 7                      Police           22
+##                                       targsubtype1_txt
+## 2                                       Named Civilian
+## 3 Diplomatic Personnel (outside of embassy, consulate)
+## 4                      Radio Journalist/Staff/Facility
+## 5                                    Embassy/Consulate
+## 6                                    Embassy/Consulate
+## 7      Police Building (headquarters, station, school)
+##                         corp1                   target1 natlty1
+## 2                                          Julio Guzman      58
+## 3 Belgian Ambassador Daughter   Nadine Chaval, daughter      21
+## 4            Voice of America                  Employee     217
+## 5                                          U.S. Embassy     217
+## 6                                        U.S. Consulate     217
+## 7     Cairo Police Department Cairo Police Headquarters     217
+##          natlty1_txt targtype2 targtype2_txt targsubtype2 targsubtype2_txt
+## 2 Dominican Republic        NA                         NA                 
+## 3            Belgium        NA                         NA                 
+## 4      United States        NA                         NA                 
+## 5      United States        NA                         NA                 
+## 6      United States        NA                         NA                 
+## 7      United States        NA                         NA                 
+##   corp2 target2 natlty2 natlty2_txt targtype3 targtype3_txt targsubtype3
+## 2                    NA                    NA                         NA
+## 3                    NA                    NA                         NA
+## 4                    NA                    NA                         NA
+## 5                    NA                    NA                         NA
+## 6                    NA                    NA                         NA
+## 7                    NA                    NA                         NA
+##   targsubtype3_txt corp3 target3 natlty3 natlty3_txt
+## 2                                     NA            
+## 3                                     NA            
+## 4                                     NA            
+## 5                                     NA            
+## 6                                     NA            
+## 7                                     NA            
+##                                gname gsubname gname2 gsubname2 gname3
+## 2                             MANO-D                                 
+## 3 23rd of September Communist League                                 
+## 4                            Unknown                                 
+## 5                            Unknown                                 
+## 6                            Unknown                                 
+## 7                 Black Nationalists                                 
+##   gsubname3                                         motive guncertain1
+## 2                                                                    0
+## 3                                                                    0
+## 4                                                                    0
+## 5                                                                    0
+## 6                                                                    0
+## 7           To protest the Cairo Illinois Police Deparment           0
+##   guncertain2 guncertain3 individual nperps nperpcap claimed claimmode
+## 2          NA          NA          0     NA       NA      NA        NA
+## 3          NA          NA          0      7       NA      NA        NA
+## 4          NA          NA          0     NA       NA      NA        NA
+## 5          NA          NA          0     NA       NA      NA        NA
+## 6          NA          NA          0     NA       NA      NA        NA
+## 7          NA          NA          0    -99      -99       0        NA
+##   claimmode_txt claim2 claimmode2 claimmode2_txt claim3 claimmode3
+## 2                   NA         NA                    NA         NA
+## 3                   NA         NA                    NA         NA
+## 4                   NA         NA                    NA         NA
+## 5                   NA         NA                    NA         NA
+## 6                   NA         NA                    NA         NA
+## 7                   NA         NA                    NA         NA
+##   claimmode3_txt compclaim weaptype1             weaptype1_txt
+## 2                       NA        13                   Unknown
+## 3                       NA        13                   Unknown
+## 4                       NA        13                   Unknown
+## 5                       NA         6 Explosives/Bombs/Dynamite
+## 6                       NA         8                Incendiary
+## 7                       NA         5                  Firearms
+##   weapsubtype1       weapsubtype1_txt weaptype2 weaptype2_txt weapsubtype2
+## 2           NA                               NA                         NA
+## 3           NA                               NA                         NA
+## 4           NA                               NA                         NA
+## 5           16 Unknown Explosive Type        NA                         NA
+## 6           NA                               NA                         NA
+## 7            5       Unknown Gun Type        NA                         NA
+##   weapsubtype2_txt weaptype3 weaptype3_txt weapsubtype3 weapsubtype3_txt
+## 2                         NA                         NA                 
+## 3                         NA                         NA                 
+## 4                         NA                         NA                 
+## 5                         NA                         NA                 
+## 6                         NA                         NA                 
+## 7                         NA                         NA                 
+##   weaptype4 weaptype4_txt weapsubtype4 weapsubtype4_txt
+## 2        NA                         NA                 
+## 3        NA                         NA                 
+## 4        NA                         NA                 
+## 5        NA                         NA                 
+## 6        NA                         NA                 
+## 7        NA                         NA                 
+##                     weapdetail nkill nkillus nkillter nwound nwoundus
+## 2                                  1      NA       NA      0       NA
+## 3                                  0      NA       NA      0       NA
+## 4                                  1      NA       NA      0       NA
+## 5                    Explosive    NA      NA       NA     NA       NA
+## 6                   Incendiary    NA      NA       NA     NA       NA
+## 7 Several gunshots were fired.     0       0        0      0        0
+##   nwoundte property propextent              propextent_txt propvalue
+## 2       NA        0         NA                                    NA
+## 3       NA        0         NA                                    NA
+## 4       NA        0         NA                                    NA
+## 5       NA        1         NA                                    NA
+## 6       NA        1         NA                                    NA
+## 7        0        1          3 Minor (likely &lt; $1 million)        NA
+##   propcomment ishostkid nhostkid nhostkidus nhours ndays divert
+## 2                     0       NA         NA     NA    NA       
+## 3                     1        1          0     NA    NA       
+## 4                     0       NA         NA     NA    NA       
+## 5                     0       NA         NA     NA    NA       
+## 6                     0       NA         NA     NA    NA       
+## 7                     0       NA         NA     NA    NA       
+##   kidhijcountry ransom ransomamt ransomamtus ransompaid ransompaidus
+## 2                    0        NA          NA         NA           NA
+## 3        Mexico      1     8e+05          NA         NA           NA
+## 4                    0        NA          NA         NA           NA
+## 5                    0        NA          NA         NA           NA
+## 6                    0        NA          NA         NA           NA
+## 7                    0        NA          NA         NA           NA
+##   ransomnote hostkidoutcome hostkidoutcome_txt nreleased
+## 2                        NA                           NA
+## 3                        NA                           NA
+## 4                        NA                           NA
+## 5                        NA                           NA
+## 6                        NA                           NA
+## 7                        NA                           NA
+##                                                                           addnotes
+## 2                                                                                 
+## 3                                                                                 
+## 4                                                                                 
+## 5                                                                                 
+## 6                                                                                 
+## 7 The Cairo Chief of Police, William Petersen, resigned as a result of the attack.
+##                                                    scite1
+## 2                                                        
+## 3                                                        
+## 4                                                        
+## 5                                                        
+## 6                                                        
+## 7 &quot;Police Chief Quits,&quot; Washington Post, January 2, 1970.
+##                                                                                    scite2
+## 2                                                                                        
+## 3                                                                                        
+## 4                                                                                        
+## 5                                                                                        
+## 6                                                                                        
+## 7 &quot;Cairo Police Chief Quits; Decries Local &#39;Militants&#39;,&quot; Afro-American, January 10, 1970.
+##                                                                                                                          scite3
+## 2                                                                                                                              
+## 3                                                                                                                              
+## 4                                                                                                                              
+## 5                                                                                                                              
+## 6                                                                                                                              
+## 7 Christopher Hewitt, &quot;Political Violence and Terrorism in Modern America: A Chronology,&quot; Praeger Security International, 2005.
+##         dbsource INT_LOG INT_IDEO INT_MISC INT_ANY related
+## 2           PGIS       0        0        0       0        
+## 3           PGIS       0        1        1       1        
+## 4           PGIS      -9       -9        1       1        
+## 5           PGIS      -9       -9        1       1        
+## 6           PGIS      -9       -9        1       1        
+## 7 Hewitt Project      -9       -9        0      -9</code></pre>
+<pre class="r"><code>dim(terrorismData)</code></pre>
+<pre><code>## [1] 170350    135</code></pre>
+<pre class="r"><code>## View head and dimensions of Temperature Data
+head(temperatureData)</code></pre>
+<pre><code>##           dt AverageTemperature AverageTemperatureUncertainty        City
+## 2 1743-11-01              6.068            1.7369999999999999 Ã\u0085rhus
+## 3 1743-12-01                                                  Ã\u0085rhus
+## 4 1744-01-01                                                  Ã\u0085rhus
+## 5 1744-02-01                                                  Ã\u0085rhus
+## 6 1744-03-01                                                  Ã\u0085rhus
+## 7 1744-04-01 5.7879999999999985            3.6239999999999997 Ã\u0085rhus
+##   Country Latitude Longitude
+## 2 Denmark   57.05N    10.33E
+## 3 Denmark   57.05N    10.33E
+## 4 Denmark   57.05N    10.33E
+## 5 Denmark   57.05N    10.33E
+## 6 Denmark   57.05N    10.33E
+## 7 Denmark   57.05N    10.33E</code></pre>
+<pre class="r"><code>dim(temperatureData)</code></pre>
+<pre><code>## [1] 9434702       7</code></pre>
+<p><strong>Some important features (variables) in the terrorism and temperature data sets</strong></p>
+<div id="terrorism-set-httpswww.kaggle.comstart-umdgtddata" class="section level4">
+<h4>Terrorism Set (<a href="https://www.kaggle.com/START-UMD/gtd/data" class="uri">https://www.kaggle.com/START-UMD/gtd/data</a>)</h4>
+<ul>
+<li>Event id</li>
+<li>Date</li>
+<li>Country</li>
+<li>City</li>
+<li>Latitude, Longitude</li>
+<li>Summary (of attack)</li>
+<li>Attack type (hostage, assassination, bombing, etc..)</li>
+<li>Weapon type</li>
+<li>Number killed</li>
+</ul>
+</div>
+<div id="temperature-set-httpswww.kaggle.comberkeleyearthclimate-change-earth-surface-temperature-datadata" class="section level4">
+<h4>Temperature Set (<a href="https://www.kaggle.com/berkeleyearth/climate-change-earth-surface-temperature-data/data" class="uri">https://www.kaggle.com/berkeleyearth/climate-change-earth-surface-temperature-data/data</a>)</h4>
+<ul>
+<li>Date</li>
+<li>Average Temperature (of day)</li>
+<li>City</li>
+<li>Country</li>
+<li>Latitude, Longitude</li>
+</ul>
+</div>
+<div id="latlong---clustered-regions" class="section level4">
+<h4>Lat/Long -&gt; Clustered Regions</h4>
+<p>The function below takes a vector of Latitudes and a vector of Longitudes and runs Hartigan and Wong’s (1979) k-means clustering algorithm to cluster the latitude and longitudes into regions. This saves us the hassle of converting cities or lat/long coordinates to US states/territories. The function is also easily scalable for non-US lat/long coordinates.</p>
+<pre class="r"><code>cluster &lt;- function(latVector, longVector) {
+
+  set.seed(4747)                                                ## Set seed for reproducibility
+  
+  lat_name &lt;- &quot;realLat&quot;                                         ## Name realLat column
+  long_name &lt;- &quot;realLong&quot;                                       ## Name realLong column
+  latlong &lt;- data.frame(latVector, longVector)                  ## Initialize new data frame with lat and long params
+  names(latlong) &lt;- c(lat_name, long_name)                      ## Apply names to frame
+  
+  latlongCluster &lt;- kmeans(latlong, centers = 20, nstart = 10)  ## Run k-means clustering with centers centroids and nstart CV&#39;s
+  
+  group_lat &lt;- &quot;GroupLat&quot;                                       ## Name GroupLat column
+  group_long &lt;- &quot;GroupLong&quot;                                     ## Name GroupLong column
+  latlongCenterData &lt;- data.frame(latlongCluster$centers)       ## Initialize data frame with centers
+  names(latlongCenterData) &lt;- c(group_lat, group_long)          ## Apply names to frame
+  
+  latlongCenterData$clusterCenter &lt;- 
+    apply(latlongCenterData, 1, paste, collapse = &quot;,&quot;)          ## Combine latlongCenterData columns into a comma seperated value
+  
+  group_name &lt;- &quot;GroupNumber&quot;                                   ## Name GroupNumber column
+  resultData &lt;- data.frame(latlongCluster$cluster)              ## Initialize data frame with kmeans clusters (region values)
+  names(resultData) &lt;- c(group_name)                            ## Apply names to frame
+  
+  resultData &lt;- resultData %&gt;%
+    mutate(LatLongCenter = 
+             latlongCenterData$clusterCenter[GroupNumber])      ## Get the appropriate centroid location for each region number
+  
+  resultData$cluster &lt;- 
+    apply(resultData, 1, paste, collapse = &quot;,&quot;)                 ## Create a new column `cluster` columns collapsed together
+  
+  return(resultData$cluster)                                    ## Return the comma seperated cluster data as a vector
+}</code></pre>
+</div>
+<div id="aggregating-master-data-set" class="section level4">
+<h4>Aggregating Master Data Set</h4>
+<p>The code chunk below cleans, merges, and computes the master data frame for terrorist and temperature data in the UNITED STATES.</p>
+<pre class="r"><code>## Get and clean only US terrorist attacks
+usaTerrorismData &lt;- terrorismData %&gt;%
+  filter(country == 217)  %&gt;%                                        ## Filter for country == USA
+  unite(date1, iyear,imonth,iday, sep=&quot;-&quot;) %&gt;%                       ## Unite seperate year, month, and day columns into one (y-m-d)
+  mutate(dateLub = ymd(date1)) %&gt;%                                   ## Convert date into &#39;Lubridate&#39; (YYYY-MM-DD)
+  filter(!is.na(dateLub))  %&gt;%                                       ## Filter out observations with missing dates (failed to parse)
+  mutate(city_char = str_to_lower(as.character(city))) %&gt;%           ## Create new city column as character type
+  mutate(month = month(as.POSIXlt(dateLub, format=&quot;%d/%m/%Y&quot;))) %&gt;%  ## Create a new month column
+  mutate(year = year(as.POSIXlt(dateLub, format=&quot;%d/%m/%Y&quot;))) %&gt;%    ## Create a new year column
+  mutate(month_year = paste(month, year))                            ## Create new month, year column (M YYYY)</code></pre>
+<pre><code>## Warning: 33 failed to parse.</code></pre>
+<pre class="r"><code>## Uncomment to view head and dimension of cleaned usaTerrorismData
+#head(usaTerrorismData)
+#dim(usaTerrorismData)
+
+
+## Get and clean only US temperatures
+usaTemperatureData &lt;- temperatureData %&gt;%
+  filter(Country == &quot;United States&quot;) %&gt;%                             ## Filter for country == USA
+  mutate(dateLub = ymd(dt)) %&gt;%                                      ## Convert date into &#39;Lubridate&#39; (YYYY-MM-DD)
+  filter(!is.na(dateLub)) %&gt;%                                        ## Filter out observations with missing dates (failed to parse)
+  filter(dateLub &gt;= as.Date(&quot;1970-01-01&quot;)) %&gt;%                       ## Filter only for data after 1/1/1970 (when Terrorism data begins)
+  mutate(city_char = str_to_lower(as.character(City))) %&gt;%           ## Create new city column as character type
+  mutate(month = month(as.POSIXlt(dateLub, format=&quot;%d/%m/%Y&quot;))) %&gt;%  ## Create a new month column
+  mutate(year = year(as.POSIXlt(dateLub, format=&quot;%d/%m/%Y&quot;))) %&gt;%    ## Create a new year column
+  mutate(month_year = paste(month, year)) %&gt;%                        ## Create new month, year column (M YYYY)
+  mutate(AverageTemperature = 
+           as.numeric(as.character(AverageTemperature)))  %&gt;%        ## Type of AverageTemperature is numeric
+  filter(!is.na(AverageTemperature))                                 ## Remove observations with missing temperatures</code></pre>
+<pre><code>## Warning: 2 failed to parse.</code></pre>
+<pre class="r"><code>## Uncomment to view head and dimension of cleaned usaTemperatureData
+#head(usaTemperatureData)
+#dim(usaTemperatureData)
+
+
+## Merge temperature data with terrorism data by city_char and month_year
+## As a result, for every city we should also have every month since 1970 (exlcuding missing data)
+## (Important note: There are ~200 unique cities in our temperature data and ~700 in our terrorism data.
+## As a result, when merging on cities, we lose about half of our terrorist attacks.)
+mergedTempTerrorismData &lt;- left_join(usaTemperatureData, usaTerrorismData, by=c(&quot;city_char&quot;, &quot;month_year&quot;))
+
+## Uncomment to view head and dimension of mergedTempTerrorismData
+#head(mergedTempTerrorismData)
+#dim(mergedTempTerrorismData)
+
+  
+## Clean mergedTempTerrorismData 
+mergedTempTerrorismData &lt;- mergedTempTerrorismData[,c(&quot;month_year&quot;, &quot;month.x&quot;, &quot;year.x&quot;,
+                                                      &quot;city_char&quot;, &quot;AverageTemperature&quot;, 
+                                                      &quot;Latitude&quot;, &quot;Longitude&quot;, &quot;nkill&quot;, 
+                                                      &quot;eventid&quot;)] %&gt;%                       ## Select explanatory variables
+  filter(year.x &lt; 2016) %&gt;%                                                                 ## Filter for a couple typos in years
+  mutate(isAttack = as.integer(!is.na(eventid))) %&gt;%                                        ## Create binary isAttack variable
+  mutate(nkill = ifelse(is.na(nkill), 0, nkill)) %&gt;%                                        ## Convert NA&#39;s to 0&#39;s in nkill
+  select(-eventid) %&gt;%                                                                      ## Remove eventid variable 
+  mutate(realLong = -1* as.numeric(str_sub(Longitude, 1, -2))) %&gt;%                          ## Parse Longitude column
+  mutate(realLat = as.numeric(str_sub(Latitude, 1, -2))) %&gt;%                                ## Parse Latitude column
+  filter(!is.na(realLat)) %&gt;%                                                               ## Remove missing Latitudes
+  filter(!is.na(realLong)) %&gt;%                                                              ## Remove missing Longitudes
+  mutate(region = cluster(realLat, realLong)) %&gt;%                                           ## Get comma seperated region cluster (r,lat,long)
+  separate(region, sep=&quot;,&quot;, into=c(&quot;Region&quot;, &quot;RegionLat&quot;, &quot;RegionLong&quot;), convert=TRUE) %&gt;%  ## Seperate comma-seperated data into the 3 columns
+  select(-Latitude, -Longitude)                                                             ## Remove Latitude and Longitude char vectors
+  
+
+## Create additional explanatory variables for mergedTempTerrorismData
+mergedTempTerrorismData &lt;- mergedTempTerrorismData %&gt;%
+  group_by(Region, month.x) %&gt;%                                                             ## Group by clustered Region and month
+  mutate(AvgTempReg = mean(AverageTemperature)) %&gt;%                                         ## Compute average temperature per month per region
+  mutate(TempDifference = abs(AvgTempReg - AverageTemperature))                             ## Compute temperature diff b/w mean and actual
+
+## Create additional explanatory variables for mergedTempTerrorismData
+mergedTempTerrorismData &lt;- mergedTempTerrorismData %&gt;%
+  group_by(Region, year.x) %&gt;%                                                              ## Group by clustered Region and year
+  mutate(AttacksInYearInReg = sum(isAttack)) %&gt;%                                            ## Sum the # of attacks in region in year
+  mutate(nKilledInYearInReg = sum(nkill)) %&gt;%                                               ## Sum the # of kills in region in year
+  group_by(Region) %&gt;%                                                                      ## Regroup by just Region
+  mutate(AvgAttacksPerYearInReg = mean(AttacksInYearInReg)) %&gt;%                             ## Compute mean attacks per year in every region
+  mutate(AvgNKilledPerYearInReg = mean(nKilledInYearInReg)) %&gt;%                             ## Compute mean # killed per year in every region
+  group_by(city_char) %&gt;%                                                                   ## Regroup by just city_char
+  mutate(AttacksPrevYearInReg = 
+           ifelse(year.x == 1970, AvgAttacksPerYearInReg, lag(AttacksInYearInReg,12))) %&gt;%  ## Compute # of attacks in prev. year in region
+  mutate(nKilledPrevYearInReg = 
+           ifelse(year.x == 1970, AvgNKilledPerYearInReg, lag(nKilledInYearInReg,12))) %&gt;%  ## Compute # killed in prev. year in region
+  ungroup(city_char)                                                                        ## Ungroup city_char grouping
+ 
+## Uncomment to view head, dimension, and random sampling of cleaned mergedTempTerrorismData
+head(mergedTempTerrorismData,10)</code></pre>
+<pre><code>## # A tibble: 10 x 20
+##    month_year month.x year.x city_char AverageTemperature nkill isAttack
+##         &lt;chr&gt;   &lt;dbl&gt;  &lt;dbl&gt;     &lt;chr&gt;              &lt;dbl&gt; &lt;dbl&gt;    &lt;int&gt;
+##  1     1 1970       1   1970   abilene              3.969     0        0
+##  2     2 1970       2   1970   abilene              8.463     0        0
+##  3     3 1970       3   1970   abilene              9.217     0        0
+##  4     4 1970       4   1970   abilene             16.835     0        0
+##  5     5 1970       5   1970   abilene             21.172     0        0
+##  6     6 1970       6   1970   abilene             25.644     0        0
+##  7     7 1970       7   1970   abilene             28.667     0        0
+##  8     8 1970       8   1970   abilene             28.230     0        0
+##  9     9 1970       9   1970   abilene             24.056     0        0
+## 10    10 1970      10   1970   abilene             15.724     0        0
+## # ... with 13 more variables: realLong &lt;dbl&gt;, realLat &lt;dbl&gt;, Region &lt;int&gt;,
+## #   RegionLat &lt;dbl&gt;, RegionLong &lt;dbl&gt;, AvgTempReg &lt;dbl&gt;,
+## #   TempDifference &lt;dbl&gt;, AttacksInYearInReg &lt;int&gt;,
+## #   nKilledInYearInReg &lt;dbl&gt;, AvgAttacksPerYearInReg &lt;dbl&gt;,
+## #   AvgNKilledPerYearInReg &lt;dbl&gt;, AttacksPrevYearInReg &lt;dbl&gt;,
+## #   nKilledPrevYearInReg &lt;dbl&gt;</code></pre>
+<pre class="r"><code>dim(mergedTempTerrorismData)</code></pre>
+<pre><code>## [1] 147816     20</code></pre>
+<pre class="r"><code>mergedTempTerrorismData[sample(nrow(mergedTempTerrorismData), 10),]</code></pre>
+<pre><code>## # A tibble: 10 x 20
+##    month_year month.x year.x     city_char AverageTemperature nkill
+##         &lt;chr&gt;   &lt;dbl&gt;  &lt;dbl&gt;         &lt;chr&gt;              &lt;dbl&gt; &lt;dbl&gt;
+##  1    10 1996      10   1996     oceanside             17.577     0
+##  2    10 2007      10   2007       hialeah             26.522     0
+##  3     2 1981       2   1981   tallahassee             13.468     0
+##  4     6 2001       6   2001       hayward             20.193     0
+##  5     3 1986       3   1986    richardson             15.367     0
+##  6    12 1992      12   1992   albuquerque             -2.189     0
+##  7     3 1972       3   1972         provo              7.002     0
+##  8     2 1994       2   1994  grand rapids             -6.604     0
+##  9     3 1990       3   1990 san francisco             12.201     0
+## 10     2 1998       2   1998   bakersfield              8.182     0
+## # ... with 14 more variables: isAttack &lt;int&gt;, realLong &lt;dbl&gt;,
+## #   realLat &lt;dbl&gt;, Region &lt;int&gt;, RegionLat &lt;dbl&gt;, RegionLong &lt;dbl&gt;,
+## #   AvgTempReg &lt;dbl&gt;, TempDifference &lt;dbl&gt;, AttacksInYearInReg &lt;int&gt;,
+## #   nKilledInYearInReg &lt;dbl&gt;, AvgAttacksPerYearInReg &lt;dbl&gt;,
+## #   AvgNKilledPerYearInReg &lt;dbl&gt;, AttacksPrevYearInReg &lt;dbl&gt;,
+## #   nKilledPrevYearInReg &lt;dbl&gt;</code></pre>
+<p>Now we must clean our master data for a neural network. This includes filtering out insignificant or unnecessary variables (both categorical and some numerical). We must also check to make sure our data frame contains no missing (na) values.</p>
+<pre class="r"><code>## First check to make sure we do not have any missing values in our data frame.
+## Uncomment below to run and display the check.
+#apply(mergedTempTerrorismData,2,function(x) sum(is.na(x)))
+
+nnData &lt;- mergedTempTerrorismData %&gt;%
+  select(month.x, isAttack, Region, TempDifference, 
+         AttacksPrevYearInReg, nKilledPrevYearInReg)                           ## Select explanatory variables
+
+## Uncomment to view head and dimension of nnData
+#head(nnData,10)
+#dim(nnData)</code></pre>
+<p>Neural network model:</p>
+<pre class="r"><code>set.seed(4747)                                                                 ## Set seed for neural net reproducibility
+
+max = apply(nnData, 2, max)                                                    ## Get max of data
+min = apply(nnData, 2, min)                                                    ## Get min of data   
+scaledData = as.data.frame(scale(nnData, center=min, scale=max-min))           ## scale data from min to max
+
+sampleSize = 0.05 * nrow(scaledData)                                            ## Sample from 2/3 of the observations
+index = sample(seq_len(nrow(scaledData)), size=sampleSize)                     ## Compute index sample
+
+trainNNData &lt;- scaledData[index,]                                              ## Get training set
+testNNData &lt;- scaledData[-index,]                                              ## Get test set
+
+neuralNet &lt;-neuralnet(isAttack~month.x+Region+TempDifference+
+                      AttacksPrevYearInReg+nKilledPrevYearInReg, 
+                      trainNNData, hidden=3, linear.output=TRUE)               ## Fit neural network on data
+
+plot(neuralNet)                                                                ## Plot the neural network
+
+plot.nnet(neuralNet, cex.val = 0.5)                                            ## Plot the neural network with a nicer library</code></pre>
+<pre><code>## Loading required package: scales</code></pre>
+<pre><code>## Loading required package: reshape</code></pre>
+<pre><code>## 
+## Attaching package: &#39;reshape&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:tidyr&#39;:
+## 
+##     expand, smiths</code></pre>
+<pre><code>## The following object is masked from &#39;package:dplyr&#39;:
+## 
+##     rename</code></pre>
+<pre><code>## The following objects are masked from &#39;package:plyr&#39;:
+## 
+##     rename, round_any</code></pre>
+<pre><code>## The following object is masked from &#39;package:lubridate&#39;:
+## 
+##     stamp</code></pre>
+<p>Assess the neural network:</p>
+<pre class="r"><code>predictTestNN &lt;- compute(neuralNet, testNNData[c(&quot;month.x&quot;, &quot;Region&quot;, 
+                                                 &quot;TempDifference&quot;, 
+                                                 &quot;AttacksPrevYearInReg&quot;, 
+                                                 &quot;nKilledPrevYearInReg&quot;)])     ## Compute test results in the neural net
+
+results &lt;- data.frame(actual=testNNData$isAttack, 
+                      prediction=predictTestNN$net.result)
+head(results)                                                                  ## Display head of results in a data frame</code></pre>
+<pre><code>##   actual    prediction
+## 1      0 0.01513790190
+## 2      0 0.01208049433
+## 3      0 0.01904329853
+## 4      0 0.01217266339
+## 5      0 0.01255871812
+## 6      0 0.01231850571</code></pre>
+<pre class="r"><code>roundedresults&lt;-sapply(results,round,digits=0)
+roundedresultsdf&lt;-data.frame(roundedresults)
+attach(roundedresultsdf)
+table(actual, prediction)                                                      ## Table of predictions v actual</code></pre>
+<pre><code>##       prediction
+## actual      0
+##      0 139231
+##      1   1195</code></pre>
+<pre class="r"><code>results %&gt;%
+  group_by(actual) %&gt;%
+  summarise(mean(prediction))                                                  ## Compute average probability predication for an attack vs non-attack</code></pre>
+<pre><code>## # A tibble: 2 x 2
+##   actual `mean(prediction)`
+##    &lt;dbl&gt;              &lt;dbl&gt;
+## 1      0     0.007997439193
+## 2      1     0.013216557007</code></pre>
+<pre class="r"><code>garson(neuralNet)                                                              ## Plot variable importance</code></pre>
+<p><img src="MasterData_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p>That did alright, but now let’s try to predict whether a terrorist attack is going to happen in a given year, rather than a given day in a region. This is going to require a bit of data re-wrangling to get the appropriate explanatory variables.</p>
+<pre class="r"><code># want additional isAttackYear, TempDifferenceYear
+mergedTempTerrorismDataYear &lt;- mergedTempTerrorismData %&gt;%
+  group_by(Region, year.x) %&gt;%                                                  ## Group by Region and year.x
+  mutate(isAttackYear = ifelse(sum(isAttack) &gt; 0, 1, 0)) %&gt;%                    ## Create isAttackYear var, was there an attack in year in reg?
+  mutate(AvgTempRegYear = mean(AverageTemperature)) %&gt;%                         ## Create AvgTempRegYear var, avg temp in reg in year
+  group_by(Region) %&gt;%                                                          ## Regroup by just Region
+  mutate(HistAvgTemp = mean(AverageTemperature)) %&gt;%                            ## Compute HistAvgTemp per region over all years
+  group_by(Region, year.x) %&gt;%                                                  ## Regroup by Region and year.x
+  mutate(TempDifferenceYear = abs(HistAvgTemp - AvgTempRegYear)) %&gt;%            ## Compute the difference in temp between year and hist avg
+  ungroup(Region, year.x)                                                       ## Ungroup all groupings
+
+## Uncomment to view head and dimension of mergedTempTerrorismDataYear
+#head(mergedTempTerrorismDataYear,20)
+#dim(mergedTempTerrorismDataYear)</code></pre>
+<p>Again we must clean our data for the neural net;</p>
+<pre class="r"><code>## First check to make sure we do not have any missing values in our data frame.
+## Uncomment below to run and display the check.
+#apply(mergedTempTerrorismDataYear,2,function(x) sum(is.na(x)))
+
+nnDataYear &lt;- mergedTempTerrorismDataYear %&gt;%
+  select(year.x, isAttackYear, Region, TempDifferenceYear, 
+         AttacksPrevYearInReg, nKilledPrevYearInReg)                           ## Select explanatory variables
+
+nnDataYear &lt;- nnDataYear %&gt;%
+  group_by(Region, year.x) %&gt;%
+  summarise_all(funs(mean))
+
+## Uncomment to view head and dimension of nnData
+#head(nnDataYear,10)
+#dim(nnDataYear)</code></pre>
+<p>Again, we are going to train another neural net model</p>
+<pre class="r"><code>set.seed(4747)                                                                 ## Set seed for neural net reproducibility
+
+max = apply(nnDataYear, 2, max)                                                    ## Get max of data
+min = apply(nnDataYear, 2, min)                                                    ## Get min of data   
+scaledDataYear = as.data.frame(scale(nnDataYear, center=min, scale=max-min))           ## scale data from min to max
+
+sampleSize = 0.67 * nrow(scaledDataYear)                                            ## Sample from 2/3 of the observations
+index = sample(seq_len(nrow(scaledDataYear)), size=sampleSize)                     ## Compute index sample
+
+trainNNDataYear &lt;- scaledDataYear[index,]                                              ## Get training set
+testNNDataYear &lt;- scaledDataYear[-index,]                                              ## Get test set
+
+neuralNetYear &lt;-neuralnet(isAttackYear~Region+TempDifferenceYear+
+                      AttacksPrevYearInReg+nKilledPrevYearInReg, 
+                      trainNNDataYear, hidden=3, linear.output=TRUE)               ## Fit neural network on data
+
+plot(neuralNetYear)                                                                ## Plot the neural network
+
+plot.nnet(neuralNetYear, cex.val = 0.5)                                            ## Plot the neural network with a nicer library</code></pre>
+<p>Assess the new neural network on year:</p>
+<pre class="r"><code>predictTestNNYear &lt;- compute(neuralNetYear, testNNDataYear[c(&quot;Region&quot;, 
+                                                 &quot;TempDifferenceYear&quot;, 
+                                                 &quot;AttacksPrevYearInReg&quot;, 
+                                                 &quot;nKilledPrevYearInReg&quot;)])     ## Compute test results in the neural net
+
+resultsYear &lt;- data.frame(actual=testNNDataYear$isAttackYear, 
+                      prediction=predictTestNNYear$net.result)
+head(resultsYear  )                                                            ## Display head of results in a data frame</code></pre>
+<pre><code>##    actual   prediction
+## 4       0 0.1634625156
+## 5       0 0.1635298512
+## 6       1 0.1634625156
+## 9       0 0.1634725187
+## 11      1 0.1634722189
+## 12      1 0.2303895829</code></pre>
+<pre class="r"><code>roundedresults&lt;-sapply(resultsYear,round,digits=0)
+roundedresultsdf&lt;-data.frame(roundedresults)
+attach(roundedresultsdf)</code></pre>
+<pre><code>## The following objects are masked from roundedresultsdf (pos = 3):
+## 
+##     actual, prediction</code></pre>
+<pre class="r"><code>table(actual, prediction)                                                      ## Table of predictions v actual</code></pre>
+<pre><code>##       prediction
+## actual   0   1
+##      0 139  31
+##      1  71  50</code></pre>
+<pre class="r"><code>resultsYear %&gt;%
+  group_by(actual) %&gt;%
+  summarise(mean(prediction))                                                  ## Compute average probability predication for an attack vs non-attack</code></pre>
+<pre><code>## # A tibble: 2 x 2
+##   actual `mean(prediction)`
+##    &lt;dbl&gt;              &lt;dbl&gt;
+## 1      0       0.3649511678
+## 2      1       0.4981493106</code></pre>
+<pre class="r"><code>garson(neuralNetYear)                                                          ## Plot variable importance</code></pre>
+<p><img src="MasterData_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<p>Visualizations:</p>
+<pre class="r"><code>library(plotly)
+library(shiny)
+
+
+
+visualizationsAttacks &lt;- usaTerrorismData %&gt;% filter(provstate != &quot;Puerto Rico&quot;) %&gt;% filter(provstate != &quot;Alaska&quot;) %&gt;% filter(provstate != &quot;Hawaii&quot;) %&gt;% filter(longitude &lt; 0) %&gt;% filter(!is.na(nkill)) 
+
+visualizationsAttacks &lt;- visualizationsAttacks %&gt;% group_by(provstate) %&gt;% summarize(totalKilled = (sum(nkill))) %&gt;% mutate(code = state.abb[match(provstate,state.name)])
+
+
+
+visualizationsAttacks$hover &lt;- with(visualizationsAttacks, paste(provstate, &#39;&lt;br&gt;&#39;, &quot;Number Killed&quot;, totalKilled))
+# give state boundaries a white border
+l &lt;- list(color = toRGB(&quot;white&quot;), width = 2)
+# specify some map projection/options
+g &lt;- list(
+  scope = &#39;usa&#39;,
+  projection = list(type = &#39;albers usa&#39;),
+  showlakes = TRUE,
+  lakecolor = toRGB(&#39;white&#39;)
+)
+
+p &lt;- plot_geo(visualizationsAttacks, locationmode = &#39;USA-states&#39;) %&gt;%
+  add_trace(
+    z = ~ totalKilled, text = ~hover, locations = ~code,
+    color = ~totalKilled, colors = &#39;Reds&#39;
+  ) %&gt;%
+  colorbar(title = &quot;Deaths&quot;) %&gt;%
+  layout(
+    title = &#39;Deaths From Terrorist Attacks Since 1970&#39;,
+    geo = g
+  )
+ 
+p
+
+
+visualizationsAttacks &lt;- usaTerrorismData %&gt;% filter(provstate != &quot;Puerto Rico&quot;) %&gt;% filter(provstate != &quot;Alaska&quot;) %&gt;% filter(provstate != &quot;Hawaii&quot;)  %&gt;% filter(provstate != &quot;New York&quot;) %&gt;% filter(longitude &lt; 0) %&gt;% filter(!is.na(nkill)) 
+
+visualizationsAttacks &lt;- visualizationsAttacks %&gt;% group_by(provstate) %&gt;% summarize(totalKilled = sum(nkill)) %&gt;% mutate(code = state.abb[match(provstate,state.name)])
+
+
+
+visualizationsAttacks$hover &lt;- with(visualizationsAttacks, paste(provstate, &#39;&lt;br&gt;&#39;, &quot;Number Killed&quot;, totalKilled))
+# give state boundaries a white border
+l &lt;- list(color = toRGB(&quot;white&quot;), width = 2)
+# specify some map projection/options
+g &lt;- list(
+  scope = &#39;usa&#39;,
+  projection = list(type = &#39;albers usa&#39;),
+  showlakes = TRUE,
+  lakecolor = toRGB(&#39;white&#39;)
+)
+
+p &lt;- plot_geo(visualizationsAttacks, locationmode = &#39;USA-states&#39;) %&gt;%
+  add_trace(
+    z = ~ totalKilled, text = ~hover, locations = ~code,
+    color = ~totalKilled, colors = &#39;Reds&#39;
+  ) %&gt;%
+  colorbar(title = &quot;Deaths&quot;) %&gt;%
+  layout(
+    title = &#39;Deaths From Terrorist Attacks Since 1970&#39;,
+    geo = g
+  )
+ 
+p
+
+visualizationsAttacks &lt;- usaTerrorismData %&gt;% filter(provstate != &quot;Puerto Rico&quot;) %&gt;% filter(provstate != &quot;Alaska&quot;) %&gt;% filter(provstate != &quot;Hawaii&quot;)  %&gt;% filter(provstate != &quot;New York&quot;) %&gt;% filter(longitude &lt; 0) %&gt;% filter(!is.na(nkill))
+
+g &lt;- list(
+  scope = &#39;usa&#39;,
+  projection = list(type = &#39;albers usa&#39;),
+  showland = TRUE,
+  landcolor = toRGB(&quot;gray95&quot;),
+  subunitcolor = toRGB(&quot;gray85&quot;),
+  countrycolor = toRGB(&quot;gray85&quot;),
+  countrywidth = 0.5,
+  subunitwidth = 0.5
+)
+
+p &lt;- plot_geo(visualizationsAttacks, lat = ~latitude, lon = ~longitude) %&gt;%
+  add_markers(
+    text = ~paste(city, provstate, paste(&quot;Attack type:&quot;, attacktype1_txt), sep = &quot;&lt;br /&gt;&quot;), symbol = I(&quot;circle&quot;), size = I(2), hoverinfo = &quot;text&quot;
+  )%&gt;%
+  layout(
+    title = &#39;Attacks&#39;, geo = g
+  )
+
+p</code></pre>
+<pre class="r"><code> # require(devtools)
+ # install_github(&#39;ramnathv/rCharts@dev&#39;)
+ # install_github(&#39;ramnathv/rMaps&#39;)
+library(shiny)
+library(leaflet)
+library(RColorBrewer)
+
+visualizationsAttacks &lt;- usaTerrorismData %&gt;% filter(provstate != &quot;Puerto Rico&quot;) %&gt;% filter(provstate != &quot;Alaska&quot;) %&gt;% filter(provstate != &quot;Hawaii&quot;) %&gt;% filter(longitude &lt; 0) %&gt;% filter(!is.na(nkill)) 
+
+visualizationsAttacks &lt;- visualizationsAttacks %&gt;% group_by(provstate, year, latitude, longitude) %&gt;% summarize(totalKilled = sum(nkill)) 
+
+ui &lt;- bootstrapPage(
+  tags$style(type = &quot;text/css&quot;, &quot;html, body {width:100%;height:100%}&quot;),
+  leafletOutput(&quot;map&quot;, width = &quot;100%&quot;, height = &quot;100%&quot;),
+  absolutePanel(top = 10, right = 10,
+    sliderInput(&quot;range&quot;, &quot;Year&quot;, min(visualizationsAttacks$year), max(visualizationsAttacks$year),
+      value = range(visualizationsAttacks$year), step = 1
+    ),
+    selectInput(&quot;colors&quot;, &quot;Color Scheme&quot;,
+      rownames(subset(brewer.pal.info, category %in% c(&quot;seq&quot;, &quot;div&quot;)))
+    ),
+    checkboxInput(&quot;legend&quot;, &quot;Show legend&quot;, TRUE)
+  )
+)
+
+
+server &lt;- function(input, output, session) {
+
+  # Reactive expression for the data subsetted to what the user selected
+  filteredData &lt;- reactive({
+    visualizationsAttacks[visualizationsAttacks$year &gt;= input$range[1] &amp; visualizationsAttacks$year &lt;= input$range[2],]
+     quakes[quakes$mag &gt;= input$range[1] &amp; quakes$mag &lt;= input$range[2],]
+  })
+  
+
+
+  # This reactive expression represents the palette function,
+  # which changes as the user makes selections in UI.
+  colorpal &lt;- reactive({
+    colorNumeric(input$colors, visualizationsAttacks$totalKilled)
+  })
+
+  output$map &lt;- renderLeaflet({
+    # Use leaflet() here, and only include aspects of the map that
+    # won&#39;t need to change dynamically (at least, not unless the
+    # entire map is being torn down and recreated).
+    leaflet(visualizationsAttacks) %&gt;% addTiles() %&gt;%
+      fitBounds(~min(longitude), ~min(latitude), ~max(longitude), ~max(latitude))
+  })
+
+
+  # Incremental changes to the map (in this case, replacing the
+  # circles when a new color is chosen) should be performed in
+  # an observer. Each independent set of things that can change
+  # should be managed in its own observer.
+  observe({
+    pal &lt;- colorpal()
+    leafletProxy(&quot;map&quot;, data = filteredData()) %&gt;%
+      clearShapes() %&gt;%
+      addCircles(radius = 50 * visualizationsAttacks$totalKilled, weight = 1, color = &quot;#777777&quot;,
+        fillColor = ~pal(visualizationsAttacks$totalKilled), fillOpacity = 0.7, popup = ~paste(visualizationsAttacks$totalKilled)
+      )
+  })
+  # Use a separate observer to recreate the legend as needed.
+  observe({
+    proxy &lt;- leafletProxy(&quot;map&quot;, data = visualizationsAttacks)
+
+    # Remove any existing legend, and only if the legend is
+    # enabled, create a new one.
+    proxy %&gt;% clearControls()
+    if (input$legend) {
+      pal &lt;- colorpal()
+      proxy %&gt;% addLegend(position = &quot;bottomright&quot;,
+        pal = pal, values = ~visualizationsAttacks$totalKilled
+      )
+    }
+  })
+}
+
+shinyApp(ui, server)
+
+
+
+
+ui &lt;- bootstrapPage(
+  tags$style(type = &quot;text/css&quot;, &quot;html, body {width:100%;height:100%}&quot;),
+  leafletOutput(&quot;map&quot;, width = &quot;100%&quot;, height = &quot;100%&quot;),
+  absolutePanel(top = 10, right = 10,
+    sliderInput(&quot;range&quot;, &quot;Magnitudes&quot;, min(quakes$mag), max(quakes$mag),
+      value = range(quakes$mag), step = 0.1
+    ),
+    selectInput(&quot;colors&quot;, &quot;Color Scheme&quot;,
+      rownames(subset(brewer.pal.info, category %in% c(&quot;seq&quot;, &quot;div&quot;)))
+    ),
+    checkboxInput(&quot;legend&quot;, &quot;Show legend&quot;, TRUE)
+  )
+)
+
+server &lt;- function(input, output, session) {
+
+  # Reactive expression for the data subsetted to what the user selected
+  filteredData &lt;- reactive({
+    quakes[quakes$mag &gt;= input$range[1] &amp; quakes$mag &lt;= input$range[2],]
+  })
+
+  # This reactive expression represents the palette function,
+  # which changes as the user makes selections in UI.
+  colorpal &lt;- reactive({
+    colorNumeric(input$colors, quakes$mag)
+  })
+
+  output$map &lt;- renderLeaflet({
+    # Use leaflet() here, and only include aspects of the map that
+    # won&#39;t need to change dynamically (at least, not unless the
+    # entire map is being torn down and recreated).
+    leaflet(quakes) %&gt;% addTiles() %&gt;%
+      fitBounds(~min(long), ~min(lat), ~max(long), ~max(lat))
+  })
+
+  # Incremental changes to the map (in this case, replacing the
+  # circles when a new color is chosen) should be performed in
+  # an observer. Each independent set of things that can change
+  # should be managed in its own observer.
+  observe({
+    pal &lt;- colorpal()
+
+    leafletProxy(&quot;map&quot;, data = filteredData()) %&gt;%
+      clearShapes() %&gt;%
+      addCircles(radius = ~10^mag/10, weight = 1, color = &quot;#777777&quot;,
+        fillColor = ~pal(mag), fillOpacity = 0.7, popup = ~paste(mag)
+      )
+  })
+
+  # Use a separate observer to recreate the legend as needed.
+  observe({
+    proxy &lt;- leafletProxy(&quot;map&quot;, data = quakes)
+
+    # Remove any existing legend, and only if the legend is
+    # enabled, create a new one.
+    proxy %&gt;% clearControls()
+    if (input$legend) {
+      pal &lt;- colorpal()
+      proxy %&gt;% addLegend(position = &quot;bottomright&quot;,
+        pal = pal, values = ~mag
+      )
+    }
+  })
+}
+
+shinyApp(ui, server)</code></pre>
+<p>test</p>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

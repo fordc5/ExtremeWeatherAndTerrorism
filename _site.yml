@@ -1,0 +1,8 @@
+name: "Terrorism and Extreme Weather"
+navbar:
+  title: "Terrorism and Extreme Weather"
+  left:
+    - text: "Home"
+      href: index.html
+    - text: "Analysis"
+      href: MasterData.html
