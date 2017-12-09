@@ -449,6 +449,7 @@ p <- plot_geo(visualizationsAttacks, locationmode = 'USA-states') %>%
  
 p
 
+visualizationsAttacks <- usaTerrorismData %>% filter(provstate != "Puerto Rico") %>% filter(provstate != "Alaska") %>% filter(provstate != "Hawaii")  %>% filter(provstate != "New York") %>% filter(longitude < 0) %>% filter(!is.na(nkill)) 
 
 g <- list(
   scope = 'usa',
@@ -490,7 +491,7 @@ ui <- bootstrapPage(
   tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
   leafletOutput("map", width = "100%", height = "100%"),
   absolutePanel(top = 10, right = 10,
-    sliderInput("range", "Year", min(visualizationsAttacks$year), max(visualizationsAttacks$year),
+    sliderInput("range", "Deaths", min(visualizationsAttacks$year), max(visualizationsAttacks$year),
       value = range(visualizationsAttacks$year), step = 1
     ),
     selectInput("colors", "Color Scheme",
@@ -500,16 +501,13 @@ ui <- bootstrapPage(
   )
 )
 
-
 server <- function(input, output, session) {
 
   # Reactive expression for the data subsetted to what the user selected
   filteredData <- reactive({
-    visualizationsAttacks[visualizationsAttacks$year >= input$range[1] & visualizationsAttacks$year <= input$range[2],]
-     quakes[quakes$mag >= input$range[1] & quakes$mag <= input$range[2],]
+    visualizationsAttacks[visualizationsAttacks$year >= 
+                            input$range[1] & visualizationsAttacks$year <= input$range[2],]
   })
-  
-
 
   # This reactive expression represents the palette function,
   # which changes as the user makes selections in UI.
@@ -525,19 +523,20 @@ server <- function(input, output, session) {
       fitBounds(~min(longitude), ~min(latitude), ~max(longitude), ~max(latitude))
   })
 
-
   # Incremental changes to the map (in this case, replacing the
   # circles when a new color is chosen) should be performed in
   # an observer. Each independent set of things that can change
   # should be managed in its own observer.
   observe({
     pal <- colorpal()
+
     leafletProxy("map", data = filteredData()) %>%
       clearShapes() %>%
-      addCircles(radius = 50 * visualizationsAttacks$totalKilled, weight = 1, color = "#777777",
-        fillColor = ~pal(visualizationsAttacks$totalKilled), fillOpacity = 0.7, popup = ~paste(visualizationsAttacks$totalKilled)
+      addCircles(radius = ~((50*(totalKilled + 1)) + 5), weight = 1, color = "#777777",
+        fillColor = ~pal(totalKilled), fillOpacity = 0.7, popup = ~paste(totalKilled)
       )
   })
+
   # Use a separate observer to recreate the legend as needed.
   observe({
     proxy <- leafletProxy("map", data = visualizationsAttacks)
@@ -548,84 +547,13 @@ server <- function(input, output, session) {
     if (input$legend) {
       pal <- colorpal()
       proxy %>% addLegend(position = "bottomright",
-        pal = pal, values = ~visualizationsAttacks$totalKilled
+        pal = pal, values = ~totalKilled
       )
     }
   })
 }
 
 shinyApp(ui, server)
-
-
-
-
-ui <- bootstrapPage(
-  tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
-  leafletOutput("map", width = "100%", height = "100%"),
-  absolutePanel(top = 10, right = 10,
-    sliderInput("range", "Magnitudes", min(quakes$mag), max(quakes$mag),
-      value = range(quakes$mag), step = 0.1
-    ),
-    selectInput("colors", "Color Scheme",
-      rownames(subset(brewer.pal.info, category %in% c("seq", "div")))
-    ),
-    checkboxInput("legend", "Show legend", TRUE)
-  )
-)
-
-server <- function(input, output, session) {
-
-  # Reactive expression for the data subsetted to what the user selected
-  filteredData <- reactive({
-    quakes[quakes$mag >= input$range[1] & quakes$mag <= input$range[2],]
-  })
-
-  # This reactive expression represents the palette function,
-  # which changes as the user makes selections in UI.
-  colorpal <- reactive({
-    colorNumeric(input$colors, quakes$mag)
-  })
-
-  output$map <- renderLeaflet({
-    # Use leaflet() here, and only include aspects of the map that
-    # won't need to change dynamically (at least, not unless the
-    # entire map is being torn down and recreated).
-    leaflet(quakes) %>% addTiles() %>%
-      fitBounds(~min(long), ~min(lat), ~max(long), ~max(lat))
-  })
-
-  # Incremental changes to the map (in this case, replacing the
-  # circles when a new color is chosen) should be performed in
-  # an observer. Each independent set of things that can change
-  # should be managed in its own observer.
-  observe({
-    pal <- colorpal()
-
-    leafletProxy("map", data = filteredData()) %>%
-      clearShapes() %>%
-      addCircles(radius = ~10^mag/10, weight = 1, color = "#777777",
-        fillColor = ~pal(mag), fillOpacity = 0.7, popup = ~paste(mag)
-      )
-  })
-
-  # Use a separate observer to recreate the legend as needed.
-  observe({
-    proxy <- leafletProxy("map", data = quakes)
-
-    # Remove any existing legend, and only if the legend is
-    # enabled, create a new one.
-    proxy %>% clearControls()
-    if (input$legend) {
-      pal <- colorpal()
-      proxy %>% addLegend(position = "bottomright",
-        pal = pal, values = ~mag
-      )
-    }
-  })
-}
-
-shinyApp(ui, server)
-
 
 ```
 test
