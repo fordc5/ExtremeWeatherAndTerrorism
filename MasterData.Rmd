@@ -230,54 +230,60 @@ Now we must clean our master data for a neural network. This includes filtering 
 #apply(mergedTempTerrorismData,2,function(x) sum(is.na(x)))
 
 nnData <- mergedTempTerrorismData %>%
-  select(month.x, isAttack, Region, TempDifference, AttacksPrevYearInReg, nKilledPrevYearInReg)
-
+  select(month.x, isAttack, Region, TempDifference, 
+         AttacksPrevYearInReg, nKilledPrevYearInReg)                           ## Select explanatory variables
 
 ## Uncomment to view head and dimension of nnData
-head(nnData,10)
+#head(nnData,10)
 #dim(nnData)
 
 ```
 
 Neural network model:
 ```{r}
-set.seed(4747)
+set.seed(4747)                                                                 ## Set seed for neural net reproducibility
 
-max = apply(nnData, 2, max)
-min = apply(nnData, 2, min)
-scaledData = as.data.frame(scale(nnData, center=min, scale=max-min))
+max = apply(nnData, 2, max)                                                    ## Get max of data
+min = apply(nnData, 2, min)                                                    ## Get min of data   
+scaledData = as.data.frame(scale(nnData, center=min, scale=max-min))           ## scale data from min to max
 
 sampleSize = 0.5 * nrow(scaledData)                                            ## Sample from 2/3 of the observations
-index = sample(seq_len(nrow(scaledData)), size=sampleSize)
+index = sample(seq_len(nrow(scaledData)), size=sampleSize)                     ## Compute index sample
 
-trainNNData <- scaledData[index,]
-testNNData <- scaledData[-index,]
+trainNNData <- scaledData[index,]                                              ## Get training set
+testNNData <- scaledData[-index,]                                              ## Get test set
 
 neuralNet <-neuralnet(isAttack~month.x+Region+TempDifference+
                       AttacksPrevYearInReg+nKilledPrevYearInReg, 
-                      trainNNData, hidden=3, linear.output=TRUE)
+                      trainNNData, hidden=3, linear.output=TRUE)               ## Fit neural network on data
 
-plot(neuralNet)                                                                 ## Plot the neural network
+plot(neuralNet)                                                                ## Plot the neural network
 
-plot.nnet(neuralNet, cex.val = 0.5)
+plot.nnet(neuralNet, cex.val = 0.5)                                            ## Plot the neural network with a nicer library
 
 ```
 
 Assess the neural network:
 ```{r}
-predictTestNN <- compute(neuralNet, testNNData[c("month.x", "Region", "TempDifference", "AttacksPrevYearInReg", "nKilledPrevYearInReg")])
+predictTestNN <- compute(neuralNet, testNNData[c("month.x", "Region", 
+                                                 "TempDifference", 
+                                                 "AttacksPrevYearInReg", 
+                                                 "nKilledPrevYearInReg")])     ## Compute test results in the neural net
 
-results <- data.frame(actual=testNNData$isAttack, prediction=predictTestNN$net.result)
-results
+results <- data.frame(actual=testNNData$isAttack, 
+                      prediction=predictTestNN$net.result)
+results                                                                        ## Display results in a data frame
+
 roundedresults<-sapply(results,round,digits=0)
 roundedresultsdf<-data.frame(roundedresults)
 attach(roundedresultsdf)
 table(actual, prediction)
 
-
-#predict_testNN <- (predict_testNN$net.result * (max(data$rating) - min(data$rating))) + min(data$rating)
-garson(neuralNet)
+garson(neuralNet)                                                              ## Plot variable importance
 ```
+
+
+
 
 Visualizations:
 ```{r}
