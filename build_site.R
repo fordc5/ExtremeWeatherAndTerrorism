@@ -6,3 +6,4 @@ setwd("/Users/ConnorFord/Documents/Semester3/CompStats/FinalProject/ma154-projec
 
 #render your sweet site. 
 rmarkdown::render_site()
+
