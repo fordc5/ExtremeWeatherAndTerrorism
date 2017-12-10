@@ -1,18 +1,18 @@
-name: "Terrorism and Extreme Weather"
+name: "Extreme Weather and Terrorism"
 output_dir: "."
 output:
   html_document:
     lib_dir: site_libs
     self_contained: no
 navbar:
-  title: Terrorism and Extreme Weather
+  title: Extreme Weather and Terrorism
   left:
   - text: Home
     href: index.html
   - text: Analysis
     href: MasterData.html
   - text: About Us
-    href:
+    href: AboutUs.html
 
 
 
