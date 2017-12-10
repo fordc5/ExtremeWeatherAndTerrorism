@@ -386,7 +386,7 @@ garson(neuralNetYear)                                                          #
 
 
 Here we will create some visualizations
-```{r, eval=FALSE}
+```{r}
 deathViz <- usaTerrorismData %>%                         # Create dataset to visualize          
   filter(provstate != "Puerto Rico") %>%                     # Remove Puerto Rico
   filter(provstate != "Alaska") %>%                          # Remove Alaska
@@ -456,7 +456,7 @@ p2
 
 Now we will make an even more interactive visualization 
 
-```{r, eval=FALSE}
+```{r}
 
 
 interactiveViz <- usaTerrorismData %>%                        # Create dataset to visualize          

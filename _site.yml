@@ -1,4 +1,5 @@
-name: Terrorism and Extreme Weather
+name: "Terrorism and Extreme Weather"
+output_dir: "."
 navbar:
   title: Terrorism and Extreme Weather
   left:
