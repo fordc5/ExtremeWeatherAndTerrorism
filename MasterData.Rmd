@@ -457,7 +457,7 @@ p2
 
 Now we will make an even more interactive visualization 
 
-```{r, eval=FALSE}
+```{r}
 
 
 interactiveViz <- usaTerrorismData %>%                        # Create dataset to visualize          
