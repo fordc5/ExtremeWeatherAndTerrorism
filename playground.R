@@ -225,3 +225,30 @@ return(result)
 }
 
 
+visualizationsAttacks <- usaTerrorismData %>% 
+  filter(provstate != "Puerto Rico") %>% 
+  filter(provstate != "Alaska") %>% 
+  filter(provstate != "Hawaii") %>% filter(longitude < 0) %>%
+  filter(!is.na(nkill)) 
+
+
+g <- list(
+  scope = 'usa',
+  projection = list(type = 'albers usa'),
+  showland = TRUE,
+  landcolor = toRGB("gray95"),
+  subunitcolor = toRGB("gray85"),
+  countrycolor = toRGB("gray85"),
+  countrywidth = 0.5,
+  subunitwidth = 0.5
+)
+
+p <- plot_geo(visualizationsAttacks, lat = ~latitude, lon = ~longitude) %>%
+  add_markers(
+    text = ~paste(city, provstate, paste("Attack type:", attacktype1_txt), sep = "<br />"), symbol = I("circle"), size = I(2), hoverinfo = "text"
+  )%>%
+  layout(
+    title = 'Attacks', geo = g
+  )
+
+p
