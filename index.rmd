@@ -1,6 +1,17 @@
 ---
-title: "My Website"
+title: "Home"
 output: html_document
 ---
 
-Hello, Website!
+## Extreme Climate and Terrorism Forecasting
+
+When our world’s climate turns for the worst, does it become deadly? In October of 2015, speaking at the Universal Exhibition in Milan, John Kerry stated that “I’m not telling you that the crisis in Syria was caused by climate change, but the devastating drought clearly made a bad situation a lot worse.” Was Kerry right? Or was the parallel of crisis and drought a mere consequence? 
+
+We want to explore if climate change, droughts, flooding, monsoons, or other extreme weather patterns can forecast the likelihood of terrorist activity in certain areas around the world. Training and testing a model on weather and terrorist data from the last 40+ years will hopefully shed light on where and when the next large terrorist attack is likely to happen.
+
+
+
+To view the source code for all analysis on this site, see our [GitHub repo here.](https://github.com/ST47S-CompStats-Fall2017/ma154-project13-teamclimate)
+
+
+We would like to extend thanks to [Jo Hardin](http://research.pomona.edu/johardin/), Professor of Statistics at Pomona College, and [Hadley Wickham](http://hadley.nz/), RStudio wizard. 

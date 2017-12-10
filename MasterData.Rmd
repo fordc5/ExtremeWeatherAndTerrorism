@@ -5,8 +5,9 @@ author: Bradley Druzinsky and Connor Ford
 output: html_document
 ---
 
-Import/install necessary packages:
+
 ```{r setup, include=FALSE}
+## Import/install necessary packages:
 knitr::opts_chunk$set(echo = TRUE)
 library(lubridate)
 library(plyr)
@@ -32,8 +33,10 @@ library(RColorBrewer)
 ```
 
 
-Import the Terrorism and Temperature data from split csv's:
-```{r}
+
+```{r, include=FALSE}
+## Import the Terrorism and Temperature data from split csv's:
+
 ## Aggregating .csv's
 read <- function(path) {
   read.csv(path,header=F,sep=",", fileEncoding="latin1")
@@ -61,8 +64,9 @@ terrorismData[] <- lapply(terrorismData, function(x) type.convert(as.character(x
 temperatureData[] <- lapply(temperatureData, function(x) type.convert(as.character(x)))
 ```
 
-View the initial datasets
-```{r}
+```{r, include=FALSE}
+## View the initial datasets
+
 ## View head and dimensions of Terrorism Data
 head(terrorismData)
 dim(terrorismData)
@@ -71,6 +75,10 @@ dim(terrorismData)
 head(temperatureData)
 dim(temperatureData)
 ```
+
+Our initial analysis concerns two datasets. The first is a Global Terrorism Database which has information on over 170,000 terrorist attacks since 1970. Each unit in the database is an attack and includes information on the time, location, tactics, perpetrators, and targets of said attack. From the source of the dataset, a 'terrorist attack' is: "The threatened or actual use of illegal force and violence by a non-state actor to attain a political, economic, religious, or social goal through fear, coercion, or intimidation." (SMART at University of Maryland)
+
+The second data set is a Berkeley Earth dataset which contains average monthly temperature for a particular location, (i.e. city, state, or country), with data going back to 1750.
 
 **Some important features (variables) in the terrorism and temperature data sets**
 
@@ -220,9 +228,9 @@ mergedTempTerrorismData <- mergedTempTerrorismData %>%
   ungroup(city_char)                                                                        ## Ungroup city_char grouping
  
 ## Uncomment to view head, dimension, and random sampling of cleaned mergedTempTerrorismData
-head(mergedTempTerrorismData,10)
-dim(mergedTempTerrorismData)
-mergedTempTerrorismData[sample(nrow(mergedTempTerrorismData), 10),]
+#head(mergedTempTerrorismData,10)
+#dim(mergedTempTerrorismData)
+#mergedTempTerrorismData[sample(nrow(mergedTempTerrorismData), 10),]
 
 ```
 

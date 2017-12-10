@@ -1,0 +1,19 @@
+---
+title: "About Us"
+output: html_document
+---
+
+Bradley and Connor are both undergraduate students at Pomona college.
+
+#### Bradley Druzinsky
+
+...
+
+contact: bradley.druzinsky@...com
+
+
+#### Connor Ford
+
+Connor is a mathematics and computer science double major. His interests outside of studies include pine trees, dogs, and watching Leroy Sane. 
+
+contact: connorford2016@gmail.com
