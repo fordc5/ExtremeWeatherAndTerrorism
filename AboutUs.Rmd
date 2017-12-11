@@ -17,4 +17,5 @@ contact: bradley.druzinsky@pomona.edu
 Connor '20 is a mathematics and computer science double major. His interests outside of studies include pine trees, dogs, and watching Leroy Sane.
 
 contact: connorford2016@gmail.com
+
 gh: https://github.com/fordc5
