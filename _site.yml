@@ -7,7 +7,7 @@ output:
 navbar:
   title: Extreme Weather and Terrorism
   left:
-  - text: About
+  - text: Project
     href: index.html
   - text: Analysis
     href: MasterData.html
