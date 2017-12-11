@@ -1,9 +1,9 @@
 ---
-title: "About Us"
+title: "Extreme Weather and Terrorism"
 output: html_document
 ---
 
-Bradley and Connor are both undergraduate students at Pomona college.
+Bradley and Connor are both undergraduate students at [Pomona college](https://www.pomona.edu/).
 
 #### Bradley Druzinsky
 
@@ -14,6 +14,7 @@ contact: bradley.druzinsky@...com
 
 #### Connor Ford
 
-Connor is a mathematics and computer science double major. His interests outside of studies include pine trees, dogs, and watching Leroy Sane. 
+Connor '20 is a mathematics and computer science double major. His interests outside of studies include pine trees, dogs, and watching Leroy Sane.
 
 contact: connorford2016@gmail.com
+gh: https://github.com/fordc5

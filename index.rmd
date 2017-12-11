@@ -1,17 +1,29 @@
 ---
-title: "Home"
+title: "Extreme Weather and Terrorism"
 output: html_document
 ---
 
-## Extreme Climate and Terrorism Forecasting
+## Extreme Weather and Terrorism Forecasting
 
 When our world’s climate turns for the worst, does it become deadly? In October of 2015, speaking at the Universal Exhibition in Milan, John Kerry stated that “I’m not telling you that the crisis in Syria was caused by climate change, but the devastating drought clearly made a bad situation a lot worse.” Was Kerry right? Or was the parallel of crisis and drought a mere consequence? 
 
 We want to explore if climate change, droughts, flooding, monsoons, or other extreme weather patterns can forecast the likelihood of terrorist activity in certain areas around the world. Training and testing a model on weather and terrorist data from the last 40+ years will hopefully shed light on where and when the next large terrorist attack is likely to happen.
 
+\vspace{1cm}
 
+Our current analysis is two-fold: i) Visualizing terrorist attacks throughout the United States from 1970-2016 and ii) modeling, with a neural network, the liklihood of a terrorist attack occuring in various regions of the US.
+
+The predictive piece to this analysis currently uses some region-based attack metrics such as the number of attacks in the previous calendar year as well as the difference between current temperature and historica averages. 
+
+Like all projects, however, we have set goals to extend this analysis in a couple of key ways:
+1. Analyzing regions around the world, not only the US.
+2. Aggregating more extreme weather data such as rainfall/drought, wind, and hurricane data.
+
+\vspace{5mm}
+
+For more information about Bradley and Connor, or if you wish to contact either of the two, please visit the **About Us** tab.
 
 To view the source code for all analysis on this site, see our [GitHub repo here.](https://github.com/ST47S-CompStats-Fall2017/ma154-project13-teamclimate)
 
 
-We would like to extend thanks to [Jo Hardin](http://research.pomona.edu/johardin/), Professor of Statistics at Pomona College, and [Hadley Wickham](http://hadley.nz/), RStudio wizard. 
+We would like to extend thanks to [Jo Hardin](http://research.pomona.edu/johardin/), Professor of Mathematics at Pomona College, and [Hadley Wickham](http://hadley.nz/), RStudio wizard, for their guidance and support with this project. 
