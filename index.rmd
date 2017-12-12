@@ -16,6 +16,7 @@ Our current analysis is two-fold: i) Visualizing terrorist attacks throughout th
 The predictive piece to this analysis currently uses some region-based attack metrics such as the number of attacks in the previous calendar year as well as the difference between current temperature and historica averages. 
 
 Like all projects, however, we have set goals to extend this analysis in a couple of key ways:
+
 1. Analyzing regions around the world, not only the US.
 2. Aggregating more extreme weather data such as rainfall/drought, wind, and hurricane data.
 

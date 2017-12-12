@@ -82,6 +82,7 @@ The second data set is a Berkeley Earth dataset which contains average monthly t
 
 #### Terrorism Set 
 (https://www.kaggle.com/START-UMD/gtd/data)
+
 * Event id
 * Date
 * Country
@@ -94,6 +95,7 @@ The second data set is a Berkeley Earth dataset which contains average monthly t
 
 #### Temperature Set 
 (https://www.kaggle.com/berkeleyearth/climate-change-earth-surface-temperature-data/data)
+
 * Date
 * Average Temperature (of day)
 * City
@@ -234,7 +236,7 @@ cluster <- function(latVector, longVector) {
   
   resultData <- resultData %>%
     mutate(LatLongCenter = 
-        latlongCenterData$clusterCenter[GroupNumber])   ## Get appropriate centroid location for each region number
+        latlongCenterData$clusterCenter[GroupNumber])   ## Get appropriate centroid location for each reg #
   
   resultData$cluster <- 
     apply(resultData, 1, paste, collapse = ",")         ## Create a new col `cluster` columns collapsed together
