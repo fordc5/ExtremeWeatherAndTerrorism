@@ -235,18 +235,7 @@ mergedTempTerrorismData <- mergedTempTerrorismData %>%
 
 ```
 
-```{r, eval=FALSE}
-## Get and clean only US terrorist attacks
-usaTerrorismData <- terrorismData %>%
-  filter(country == 217)  %>%                                        ## Filter for country == USA
-  unite(date1, iyear,imonth,iday, sep="-") %>%                       ## Unite seperate year, month, and day columns into one (y-m-d)
-  mutate(dateLub = ymd(date1)) %>%                                   ## Convert date into 'Lubridate' (YYYY-MM-DD)
-  filter(!is.na(dateLub))  %>%                                       ## Filter out observations with missing dates (failed to parse)
-  mutate(city_char = str_to_lower(as.character(city))) %>%           ## Create new city column as character type
-  mutate(month = month(as.POSIXlt(dateLub, format="%d/%m/%Y"))) %>%  ## Create a new month column
-  mutate(year = year(as.POSIXlt(dateLub, format="%d/%m/%Y"))) %>%    ## Create a new year column
-  mutate(month_year = paste(month, year))                            ## Create new month, year column (M YYYY)
-```
+
 
 
 
@@ -322,7 +311,7 @@ p2
 
 Now we will make an even more interactive visualization 
 
-```{r}
+```{r, eval=FALSE, echo=FALSE}
 
 
 interactiveViz <- usaTerrorismData %>%                        # Create dataset to visualize          
