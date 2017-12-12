@@ -379,6 +379,8 @@ plot(neuralNet)
 plot.nnet(neuralNet, cex.val = 0.5)                                            ## Plot the neural network with a nicer library
 ```
 
+![Neural Net Result](./Images/NNRes.png)
+
 ```{r warning=FALSE, message=FALSE, echo=FALSE}
 predictTestNN <- compute(neuralNet, testNNData[c("month.x", "Region", 
                                                  "TempDifference", 
@@ -468,8 +470,7 @@ plot(neuralNetYear)                                                             
 plot.nnet(neuralNetYear, cex.val = 0.5)                                            ## Plot the neural network with a nicer library
 ```
 
-
-```{r warning=FALSE, message=FALSE, echo=FALSE}
+```{r warnings=FALSE, message=FALSE, echo=FALSE}
 predictTestNNYear <- compute(neuralNetYear, testNNDataYear[c("Region", 
                                                  "TempDifferenceYear", 
                                                  "AttacksPrevYearInReg", 
@@ -481,12 +482,12 @@ head(resultsYear  )                                                            #
 
 roundedresults<-sapply(resultsYear,round,digits=0)
 roundedresultsdf<-data.frame(roundedresults)
-#attach(roundedresultsdf)
-#table(actual, prediction)                                                      ## Table of predictions v actual
+attach(roundedresultsdf)
+table(actual, prediction)                                                      ## Table of predictions v actual
 
-#resultsYear %>%
-#  group_by(actual) %>%
-#  summarise(mean(prediction))                                                  ## Compute average probability predication for an attack vs non-attack
+resultsYear %>%
+  group_by(actual) %>%
+  summarise(mean(prediction))                                                  ## Compute average probability predication for an attack vs non-attack
 
 
 garson(neuralNetYear)                                                          ## Plot variable importance
