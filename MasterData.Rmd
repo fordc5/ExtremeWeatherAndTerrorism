@@ -80,7 +80,8 @@ The second data set is a Berkeley Earth dataset which contains average monthly t
 
 **Some important features (variables) in the terrorism and temperature data sets**
 
-#### Terrorism Set (https://www.kaggle.com/START-UMD/gtd/data)
+#### Terrorism Set 
+(https://www.kaggle.com/START-UMD/gtd/data)
 * Event id
 * Date
 * Country
@@ -91,7 +92,8 @@ The second data set is a Berkeley Earth dataset which contains average monthly t
 * Weapon type
 * Number killed
 
-#### Temperature Set (https://www.kaggle.com/berkeleyearth/climate-change-earth-surface-temperature-data/data)
+#### Temperature Set 
+(https://www.kaggle.com/berkeleyearth/climate-change-earth-surface-temperature-data/data)
 * Date
 * Average Temperature (of day)
 * City
@@ -109,14 +111,16 @@ After importing our datasets, the first task is to clean the data. This is a lon
 ```{r, include=TRUE, warning=FALSE}
 ## Get and clean only US terrorist attacks
 usaTerrorismData <- terrorismData %>%
-  filter(country == 217)  %>%                                     ## Filter for country == USA
-  unite(date1, iyear,imonth,iday, sep="-") %>%                    ## Unite seperate year, month, and day columns into one (y-m-d)
-  mutate(dateLub = ymd(date1)) %>%                                ## Convert date into 'Lubridate' (YYYY-MM-DD)
-  filter(!is.na(dateLub))  %>%                                    ## Filter out observations with missing dates (failed to parse)
-  mutate(city_char = str_to_lower(as.character(city))) %>%        ## Create new city column as character type
-  mutate(month = month(as.POSIXlt(dateLub, format="%d/%m/%Y"))) %>%  ## Create a new month column
-  mutate(year = year(as.POSIXlt(dateLub, format="%d/%m/%Y"))) %>%    ## Create a new year column
-  mutate(month_year = paste(month, year))                            ## Create new month, year column (M YYYY)
+  filter(country == 217)  %>%                               ## Filter for country == USA
+  unite(date1, iyear,imonth,iday, sep="-") %>%              ## Unite seperate year, month, and day cols into one(y-m-d)
+  mutate(dateLub = ymd(date1)) %>%                          ## Convert date into 'Lubridate' (YYYY-MM-DD)
+  filter(!is.na(dateLub))  %>%                              ## Filter out obs with missing dates(failed to parse)
+  mutate(city_char = str_to_lower(as.character(city))) %>%  ## Create new city column as character type
+  mutate(month = month(as.POSIXlt(dateLub, 
+                                  format="%d/%m/%Y"))) %>%  ## Create a new month column
+  mutate(year = year(as.POSIXlt(dateLub, 
+                                format="%d/%m/%Y"))) %>%    ## Create a new year column
+  mutate(month_year = paste(month, year))                   ## Create new month, year column (M YYYY)
   
 ```
 
@@ -193,8 +197,6 @@ p2
 ```
 
 
-
-
 And now we will examine attacks as time progresses from 1970 to present day:
 ```{r, echo=FALSE, warning=FALSE}
 library(htmltools)
@@ -202,47 +204,42 @@ htmltools::includeHTML("shiny.html")
 ```
 
 
-
-
-
-
-We will now use the latitude and longitude of each observation in order to group each of our observations into regions. We will utilize k-means clustering in order to do so. After cross-validation, we found that k = 20 produces the best clustering for our data. We are interested in 
-creating regions instead of states because states have proven to be very difficult to work with.
+We will now use the latitude and longitude of each observation in order to group each of our observations into regions. We will utilize k-means clustering in order to do so. After cross-validation, we found that k = 20 produces the best clustering for our data. We are interested in creating regions instead of states because states have proven to be very difficult to work with.
 
 ```{r, include=TRUE}
-
-
 cluster <- function(latVector, longVector) {
 
-  set.seed(4747)                                                ## Set seed for reproducibility
+  set.seed(4747)                                        ## Set seed for reproducibility
   
-  lat_name <- "realLat"                                         ## Name realLat column
-  long_name <- "realLong"                                       ## Name realLong column
-  latlong <- data.frame(latVector, longVector)                  ## Initialize new data frame with lat and long params
-  names(latlong) <- c(lat_name, long_name)                      ## Apply names to frame
+  lat_name <- "realLat"                                 ## Name realLat column
+  long_name <- "realLong"                               ## Name realLong column
+  latlong <- data.frame(latVector, longVector)          ## Initialize new data frame with lat and long params
+  names(latlong) <- c(lat_name, long_name)              ## Apply names to frame
   
-  latlongCluster <- kmeans(latlong, centers = 20, nstart = 10)  ## Run k-means clustering with centers centroids and nstart CV's
+  latlongCluster <- kmeans(latlong, 
+                           centers = 20, 
+                           nstart = 10)                 ## Run k-means clustering with centers & nstart
   
-  group_lat <- "GroupLat"                                       ## Name GroupLat column
-  group_long <- "GroupLong"                                     ## Name GroupLong column
-  latlongCenterData <- data.frame(latlongCluster$centers)       ## Initialize data frame with centers
-  names(latlongCenterData) <- c(group_lat, group_long)          ## Apply names to frame
+  group_lat <- "GroupLat"                               ## Name GroupLat column
+  group_long <- "GroupLong"                             ## Name GroupLong column
+  latlongCenterData<-data.frame(latlongCluster$centers) ## Initialize data frame with centers
+  names(latlongCenterData)<-c(group_lat, group_long)    ## Apply names to frame
   
   latlongCenterData$clusterCenter <- 
-    apply(latlongCenterData, 1, paste, collapse = ",")          ## Combine latlongCenterData columns into a comma seperated value
+    apply(latlongCenterData,1,paste,collapse=",")       ## Combine latlongCenterData columns
   
-  group_name <- "GroupNumber"                                   ## Name GroupNumber column
-  resultData <- data.frame(latlongCluster$cluster)              ## Initialize data frame with kmeans clusters (region values)
-  names(resultData) <- c(group_name)                            ## Apply names to frame
+  group_name <- "GroupNumber"                           ## Name GroupNumber column
+  resultData <- data.frame(latlongCluster$cluster)      ## Initialize data frame with kmeans clusters
+  names(resultData) <- c(group_name)                    ## Apply names to frame
   
   resultData <- resultData %>%
     mutate(LatLongCenter = 
-             latlongCenterData$clusterCenter[GroupNumber])      ## Get the appropriate centroid location for each region number
+        latlongCenterData$clusterCenter[GroupNumber])   ## Get appropriate centroid location for each region number
   
   resultData$cluster <- 
-    apply(resultData, 1, paste, collapse = ",")                 ## Create a new column `cluster` columns collapsed together
+    apply(resultData, 1, paste, collapse = ",")         ## Create a new col `cluster` columns collapsed together
   
-  return(resultData$cluster)                                    ## Return the comma seperated cluster data as a vector
+  return(resultData$cluster)                            ## Return the comma seperated cluster data as vector
 }
 ```
 
@@ -332,7 +329,6 @@ We want to create a model to forecast future terrorist attacks with a neural net
 
 Because our neural net takes so long to train initial CV was limited to experimenting with just a handful of different hidden layers. The code for producing this model is below:
 
-
 ```{r, warning=FALSE, include=FALSE}
 ## First check to make sure we do not have any missing values in our data frame.
 ## Uncomment below to run and display the check.
@@ -352,35 +348,33 @@ nnData <- mergedTempTerrorismData %>%
 ```{r warnings=FALSE, message=FALSE}
 # Neural net model
 
-set.seed(4747)                                                                 ## Set seed for neural net reproducibility
+set.seed(4747)                                                          ## Set seed for neural net
 
-max = apply(nnData, 2, max)                                                    ## Get max of data
-min = apply(nnData, 2, min)                                                    ## Get min of data   
-scaledData = as.data.frame(scale(nnData, center=min, scale=max-min))           ## scale data from min to max
+max = apply(nnData, 2, max)                                             ## Get max of data
+min = apply(nnData, 2, min)                                             ## Get min of data   
+scaledData = as.data.frame(scale(nnData, center=min, scale=max-min))    ## scale data from min to max
 
-sampleSize = 0.1 * nrow(scaledData)                                            ## Sample from 2/3 of the observations
-index = sample(seq_len(nrow(scaledData)), size=sampleSize)                     ## Compute index sample
+sampleSize = 0.2 * nrow(scaledData)                                     ## Sample from 2/3 of the observations
+index = sample(seq_len(nrow(scaledData)), size=sampleSize)              ## Compute index sample
 
-trainNNData <- scaledData[index,]                                              ## Get training set
-testNNData <- scaledData[-index,]                                              ## Get test set
+trainNNData <- scaledData[index,]                                       ## Get training set
+testNNData <- scaledData[-index,]                                       ## Get test set
 
 neuralNet <-neuralnet(isAttack~month.x+Region+TempDifference+
                       AttacksPrevYearInReg+nKilledPrevYearInReg, 
-                      trainNNData, hidden=3, linear.output=TRUE)               ## Fit neural network on data
+                      trainNNData, hidden=3, linear.output=TRUE)        ## Fit neural network on data
 
 ```
 
 We can assess this model by looking at a sample of predictions as well as variable importance.
 
-```{r, warning=FALSE, include=FALSE}
+```{r, warning=FALSE, include=FALSE, message=FALSE}
 plot(neuralNet)
 ```
 
-```{r, warning=FALSE, echo=FALSE}
+```{r, warning=FALSE, echo=FALSE, message=FALSE}
 plot.nnet(neuralNet, cex.val = 0.5)                                            ## Plot the neural network with a nicer library
 ```
-
-![Neural Net Result](./Images/NNRes.png)
 
 ```{r warning=FALSE, message=FALSE, echo=FALSE}
 predictTestNN <- compute(neuralNet, testNNData[c("month.x", "Region", 
@@ -397,9 +391,9 @@ roundedresultsdf<-data.frame(roundedresults)
 #attach(roundedresultsdf)
 #table(actual, prediction)                                                      ## Table of predictions v actual
 
-#results %>%
-#  group_by(actual) %>%
-#  summarise(mean(prediction))                                                  ## Compute average probability predication for an attack vs non-attack
+results %>%
+  group_by(actual) %>%
+  summarise(mean(prediction))                                                  ## Compute average probability predication for an attack vs non-attack
 
 garson(neuralNet)                                                              ## Plot variable importance
 ```
@@ -463,11 +457,13 @@ neuralNetYear <-neuralnet(isAttackYear~Region+TempDifferenceYear+
 
 ```
 
-```{r, warning=FALSE, include=FALSE}
+Results for neural net by year:
+
+```{r, warning=FALSE, include=FALSE, message=FALSE}
 plot(neuralNetYear)                                                                ## Plot the neural network
 ```
 
-```{r, warning=FALSE, echo=FALSE}
+```{r, warning=FALSE, echo=FALSE, message=FALSE}
 plot.nnet(neuralNetYear, cex.val = 0.5)                                            ## Plot the neural network with a nicer library
 ```
 
@@ -483,8 +479,8 @@ head(resultsYear  )                                                            #
 
 roundedresults<-sapply(resultsYear,round,digits=0)
 roundedresultsdf<-data.frame(roundedresults)
-attach(roundedresultsdf)
-table(actual, prediction)                                                      ## Table of predictions v actual
+#attach(roundedresultsdf)
+#table(actual, prediction)                                                      ## Table of predictions v actual
 
 resultsYear %>%
   group_by(actual) %>%

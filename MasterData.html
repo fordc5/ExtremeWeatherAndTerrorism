@@ -213,47 +213,33 @@ $(document).ready(function () {
 <p>Our initial analysis concerns two datasets. The first is a Global Terrorism Database which has information on over 170,000 terrorist attacks since 1970. Each unit in the database is an attack and includes information on the time, location, tactics, perpetrators, and targets of said attack. From the source of the dataset, a ‘terrorist attack’ is: “The threatened or actual use of illegal force and violence by a non-state actor to attain a political, economic, religious, or social goal through fear, coercion, or intimidation.” (SMART at University of Maryland)</p>
 <p>The second data set is a Berkeley Earth dataset which contains average monthly temperature for a particular location, (i.e. city, state, or country), with data going back to 1750.</p>
 <p><strong>Some important features (variables) in the terrorism and temperature data sets</strong></p>
-<div id="terrorism-set-httpswww.kaggle.comstart-umdgtddata" class="section level4">
-<h4>Terrorism Set (<a href="https://www.kaggle.com/START-UMD/gtd/data" class="uri">https://www.kaggle.com/START-UMD/gtd/data</a>)</h4>
-<ul>
-<li>Event id</li>
-<li>Date</li>
-<li>Country</li>
-<li>City</li>
-<li>Latitude, Longitude</li>
-<li>Summary (of attack)</li>
-<li>Attack type (hostage, assassination, bombing, etc..)</li>
-<li>Weapon type</li>
-<li>Number killed</li>
-</ul>
+<div id="terrorism-set" class="section level4">
+<h4>Terrorism Set</h4>
+<p>(<a href="https://www.kaggle.com/START-UMD/gtd/data" class="uri">https://www.kaggle.com/START-UMD/gtd/data</a>) * Event id * Date * Country * City * Latitude, Longitude * Summary (of attack) * Attack type (hostage, assassination, bombing, etc..) * Weapon type * Number killed</p>
 </div>
-<div id="temperature-set-httpswww.kaggle.comberkeleyearthclimate-change-earth-surface-temperature-datadata" class="section level4">
-<h4>Temperature Set (<a href="https://www.kaggle.com/berkeleyearth/climate-change-earth-surface-temperature-data/data" class="uri">https://www.kaggle.com/berkeleyearth/climate-change-earth-surface-temperature-data/data</a>)</h4>
-<ul>
-<li>Date</li>
-<li>Average Temperature (of day)</li>
-<li>City</li>
-<li>Country</li>
-<li>Latitude, Longitude</li>
-</ul>
+<div id="temperature-set" class="section level4">
+<h4>Temperature Set</h4>
+<p>(<a href="https://www.kaggle.com/berkeleyearth/climate-change-earth-surface-temperature-data/data" class="uri">https://www.kaggle.com/berkeleyearth/climate-change-earth-surface-temperature-data/data</a>) * Date * Average Temperature (of day) * City * Country * Latitude, Longitude</p>
 </div>
 <div id="aggregating-master-data-set" class="section level3">
 <h3>Aggregating Master Data Set</h3>
 <p>After importing our datasets, the first task is to clean the data. This is a long, tedious process, that includes accounting for missing data, merging, and computing a master data frame for terrorist and temperature data in the United States. Below, we show a fraction of this work, with the chunk shown cleaning parts of the inital global terrorism dataset.</p>
 <pre class="r"><code>## Get and clean only US terrorist attacks
 usaTerrorismData &lt;- terrorismData %&gt;%
-  filter(country == 217)  %&gt;%                                     ## Filter for country == USA
-  unite(date1, iyear,imonth,iday, sep=&quot;-&quot;) %&gt;%                    ## Unite seperate year, month, and day columns into one (y-m-d)
-  mutate(dateLub = ymd(date1)) %&gt;%                                ## Convert date into &#39;Lubridate&#39; (YYYY-MM-DD)
-  filter(!is.na(dateLub))  %&gt;%                                    ## Filter out observations with missing dates (failed to parse)
-  mutate(city_char = str_to_lower(as.character(city))) %&gt;%        ## Create new city column as character type
-  mutate(month = month(as.POSIXlt(dateLub, format=&quot;%d/%m/%Y&quot;))) %&gt;%  ## Create a new month column
-  mutate(year = year(as.POSIXlt(dateLub, format=&quot;%d/%m/%Y&quot;))) %&gt;%    ## Create a new year column
-  mutate(month_year = paste(month, year))                            ## Create new month, year column (M YYYY)</code></pre>
-<p>Here we will examine terrorist attacks by State since 1970: <div id="6c31d96a4ac" style="width:672px;height:480px;" class="plotly html-widget"></div>
-<script type="application/json" data-for="6c31d96a4ac">{"x":{"visdat":{"6c3564c176f":["function () ","plotlyVisDat"]},"cur_data":"6c3564c176f","attrs":{"6c3564c176f":{"locationmode":"USA-states","alpha":1,"sizes":[10,100],"z":{},"text":{},"locations":{},"color":{},"colors":"Reds"}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"mapType":"geo","scene":{"zaxis":{"title":"totalKilled"}},"geo":{"domain":{"x":[0,1],"y":[0,1]},"scope":"usa","projection":{"type":"albers usa"},"showlakes":true,"lakecolor":"rgba(255,255,255,1)"},"hovermode":"closest","showlegend":false,"legend":{"y":0.5,"yanchor":"top"},"title":"Deaths From Terrorist Attacks Since 1970"},"source":"A","config":{"modeBarButtonsToAdd":[{"name":"Collaborate","icon":{"width":1000,"ascent":500,"descent":-50,"path":"M487 375c7-10 9-23 5-36l-79-259c-3-12-11-23-22-31-11-8-22-12-35-12l-263 0c-15 0-29 5-43 15-13 10-23 23-28 37-5 13-5 25-1 37 0 0 0 3 1 7 1 5 1 8 1 11 0 2 0 4-1 6 0 3-1 5-1 6 1 2 2 4 3 6 1 2 2 4 4 6 2 3 4 5 5 7 5 7 9 16 13 26 4 10 7 19 9 26 0 2 0 5 0 9-1 4-1 6 0 8 0 2 2 5 4 8 3 3 5 5 5 7 4 6 8 15 12 26 4 11 7 19 7 26 1 1 0 4 0 9-1 4-1 7 0 8 1 2 3 5 6 8 4 4 6 6 6 7 4 5 8 13 13 24 4 11 7 20 7 28 1 1 0 4 0 7-1 3-1 6-1 7 0 2 1 4 3 6 1 1 3 4 5 6 2 3 3 5 5 6 1 2 3 5 4 9 2 3 3 7 5 10 1 3 2 6 4 10 2 4 4 7 6 9 2 3 4 5 7 7 3 2 7 3 11 3 3 0 8 0 13-1l0-1c7 2 12 2 14 2l218 0c14 0 25-5 32-16 8-10 10-23 6-37l-79-259c-7-22-13-37-20-43-7-7-19-10-37-10l-248 0c-5 0-9-2-11-5-2-3-2-7 0-12 4-13 18-20 41-20l264 0c5 0 10 2 16 5 5 3 8 6 10 11l85 282c2 5 2 10 2 17 7-3 13-7 17-13z m-304 0c-1-3-1-5 0-7 1-1 3-2 6-2l174 0c2 0 4 1 7 2 2 2 4 4 5 7l6 18c0 3 0 5-1 7-1 1-3 2-6 2l-173 0c-3 0-5-1-8-2-2-2-4-4-4-7z m-24-73c-1-3-1-5 0-7 2-2 3-2 6-2l174 0c2 0 5 0 7 2 3 2 4 4 5 7l6 18c1 2 0 5-1 6-1 2-3 3-5 3l-174 0c-3 0-5-1-7-3-3-1-4-4-5-6z"},"click":"function(gd) { \n        // is this being viewed in RStudio?\n        if (location.search == '?viewer_pane=1') {\n          alert('To learn about plotly for collaboration, visit:\\n https://cpsievert.github.io/plotly_book/plot-ly-for-collaboration.html');\n        } else {\n          window.open('https://cpsievert.github.io/plotly_book/plot-ly-for-collaboration.html', '_blank');\n        }\n      }"}],"cloud":false},"data":[{"colorbar":{"title":"Deaths","ticklen":2,"len":0.5,"y":1,"lenmode":"fraction","yanchor":"top"},"colorscale":[["0","rgba(255,245,240,1)"],["0.000354233085370174","rgba(255,245,240,1)"],["0.000708466170740347","rgba(255,245,240,1)"],["0.00141693234148069","rgba(255,245,240,1)"],["0.00177116542685087","rgba(255,245,240,1)"],["0.00212539851222104","rgba(255,245,239,1)"],["0.00247963159759122","rgba(255,245,239,1)"],["0.00283386468296139","rgba(255,245,239,1)"],["0.00318809776833156","rgba(255,244,239,1)"],["0.00389656393907191","rgba(255,244,239,1)"],["0.00425079702444208","rgba(255,244,239,1)"],["0.00637619553666312","rgba(255,244,238,1)"],["0.0152320226709175","rgba(255,242,236,1)"],["0.0226709174636911","rgba(255,241,235,1)"],["0.0602196245129295","rgba(255,235,225,1)"],["1","rgba(103,0,13,1)"]],"showscale":true,"locationmode":"USA-states","z":[5,4,2,79,21,2,0,17,64,7,0,6,4,0,4,0,18,0,8,12,5,2,1,2,0,1,6,0,11,0,2823,9,2,8,170,0,51,0,9,2,12,43,3,0,196,6,0,8,0],"text":["Alabama <br> Number Killed 5","Arizona <br> Number Killed 4","Arkansas <br> Number Killed 2","California <br> Number Killed 79","Colorado <br> Number Killed 21","Connecticut <br> Number Killed 2","Delaware <br> Number Killed 0","District of Columbia <br> Number Killed 17","Florida <br> Number Killed 64","Georgia <br> Number Killed 7","Idaho <br> Number Killed 0","Illinois <br> Number Killed 6","Indiana <br> Number Killed 4","Iowa <br> Number Killed 0","Kansas <br> Number Killed 4","Kentucky <br> Number Killed 0","Louisiana <br> Number Killed 18","Maine <br> Number Killed 0","Maryland <br> Number Killed 8","Massachusetts <br> Number Killed 12","Michigan <br> Number Killed 5","Minnesota <br> Number Killed 2","Mississippi <br> Number Killed 1","Missouri <br> Number Killed 2","Montana <br> Number Killed 0","Nebraska <br> Number Killed 1","Nevada <br> Number Killed 6","New Hampshire <br> Number Killed 0","New Jersey <br> Number Killed 11","New Mexico <br> Number Killed 0","New York <br> Number Killed 2823","North Carolina <br> Number Killed 9","North Dakota <br> Number Killed 2","Ohio <br> Number Killed 8","Oklahoma <br> Number Killed 170","Oregon <br> Number Killed 0","Pennsylvania <br> Number Killed 51","Rhode Island <br> Number Killed 0","South Carolina <br> Number Killed 9","South Dakota <br> Number Killed 2","Tennessee <br> Number Killed 12","Texas <br> Number Killed 43","Utah <br> Number Killed 3","Vermont <br> Number Killed 0","Virginia <br> Number Killed 196","Washington <br> Number Killed 6","West Virginia <br> Number Killed 0","Wisconsin <br> Number Killed 8","Wyoming <br> Number Killed 0"],"locations":["AL","AZ","AR","CA","CO","CT","DE",null,"FL","GA","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"],"type":"choropleth","geo":"geo","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1}},"base_url":"https://plot.ly"},"evals":["config.modeBarButtonsToAdd.0.click"],"jsHooks":{"render":[{"code":"function(el, x) { var ctConfig = crosstalk.var('plotlyCrosstalkOpts').set({\"on\":\"plotly_click\",\"persistent\":false,\"dynamic\":false,\"selectize\":false,\"opacityDim\":0.2,\"selected\":{\"opacity\":1}}); }","data":null},{"code":"function(el, x) { var ctConfig = crosstalk.var('plotlyCrosstalkOpts').set({\"on\":\"plotly_click\",\"persistent\":false,\"dynamic\":false,\"selectize\":false,\"opacityDim\":0.2,\"selected\":{\"opacity\":1}}); }","data":null}]}}</script></p>
-<p>We notice that New York skews the data so we will examine the data without New York: <div id="6c3186da808" style="width:672px;height:480px;" class="plotly html-widget"></div>
-<script type="application/json" data-for="6c3186da808">{"x":{"visdat":{"6c37ae618e9":["function () ","plotlyVisDat"]},"cur_data":"6c37ae618e9","attrs":{"6c37ae618e9":{"locationmode":"USA-states","alpha":1,"sizes":[10,100],"z":{},"text":{},"locations":{},"color":{},"colors":"Reds"}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"mapType":"geo","scene":{"zaxis":{"title":"totalKilled"}},"geo":{"domain":{"x":[0,1],"y":[0,1]},"scope":"usa","projection":{"type":"albers usa"},"showlakes":true,"lakecolor":"rgba(255,255,255,1)"},"hovermode":"closest","showlegend":false,"legend":{"y":0.5,"yanchor":"top"},"title":"Deaths From Terrorist Attacks Since 1970 Excluding New York"},"source":"A","config":{"modeBarButtonsToAdd":[{"name":"Collaborate","icon":{"width":1000,"ascent":500,"descent":-50,"path":"M487 375c7-10 9-23 5-36l-79-259c-3-12-11-23-22-31-11-8-22-12-35-12l-263 0c-15 0-29 5-43 15-13 10-23 23-28 37-5 13-5 25-1 37 0 0 0 3 1 7 1 5 1 8 1 11 0 2 0 4-1 6 0 3-1 5-1 6 1 2 2 4 3 6 1 2 2 4 4 6 2 3 4 5 5 7 5 7 9 16 13 26 4 10 7 19 9 26 0 2 0 5 0 9-1 4-1 6 0 8 0 2 2 5 4 8 3 3 5 5 5 7 4 6 8 15 12 26 4 11 7 19 7 26 1 1 0 4 0 9-1 4-1 7 0 8 1 2 3 5 6 8 4 4 6 6 6 7 4 5 8 13 13 24 4 11 7 20 7 28 1 1 0 4 0 7-1 3-1 6-1 7 0 2 1 4 3 6 1 1 3 4 5 6 2 3 3 5 5 6 1 2 3 5 4 9 2 3 3 7 5 10 1 3 2 6 4 10 2 4 4 7 6 9 2 3 4 5 7 7 3 2 7 3 11 3 3 0 8 0 13-1l0-1c7 2 12 2 14 2l218 0c14 0 25-5 32-16 8-10 10-23 6-37l-79-259c-7-22-13-37-20-43-7-7-19-10-37-10l-248 0c-5 0-9-2-11-5-2-3-2-7 0-12 4-13 18-20 41-20l264 0c5 0 10 2 16 5 5 3 8 6 10 11l85 282c2 5 2 10 2 17 7-3 13-7 17-13z m-304 0c-1-3-1-5 0-7 1-1 3-2 6-2l174 0c2 0 4 1 7 2 2 2 4 4 5 7l6 18c0 3 0 5-1 7-1 1-3 2-6 2l-173 0c-3 0-5-1-8-2-2-2-4-4-4-7z m-24-73c-1-3-1-5 0-7 2-2 3-2 6-2l174 0c2 0 5 0 7 2 3 2 4 4 5 7l6 18c1 2 0 5-1 6-1 2-3 3-5 3l-174 0c-3 0-5-1-7-3-3-1-4-4-5-6z"},"click":"function(gd) { \n        // is this being viewed in RStudio?\n        if (location.search == '?viewer_pane=1') {\n          alert('To learn about plotly for collaboration, visit:\\n https://cpsievert.github.io/plotly_book/plot-ly-for-collaboration.html');\n        } else {\n          window.open('https://cpsievert.github.io/plotly_book/plot-ly-for-collaboration.html', '_blank');\n        }\n      }"}],"cloud":false},"data":[{"colorbar":{"title":"Deaths","ticklen":2,"len":0.5,"y":1,"lenmode":"fraction","yanchor":"top"},"colorscale":[["0","rgba(255,245,240,1)"],["0.00510204081632653","rgba(255,244,239,1)"],["0.0102040816326531","rgba(255,243,238,1)"],["0.0180697278911565","rgba(255,242,236,1)"],["0.0204081632653061","rgba(255,242,235,1)"],["0.0255102040816327","rgba(255,241,234,1)"],["0.0306122448979592","rgba(255,240,233,1)"],["0.0325255102040816","rgba(255,240,232,1)"],["0.0408163265306122","rgba(255,238,230,1)"],["0.0423044217687075","rgba(255,238,230,1)"],["0.048469387755102","rgba(255,237,228,1)"],["0.0612244897959184","rgba(255,235,225,1)"],["0.0875850340136054","rgba(254,230,219,1)"],["0.121173469387755","rgba(254,225,211,1)"],["0.265731292517007","rgba(252,182,155,1)"],["0.422406462585033","rgba(252,131,99,1)"],["1","rgba(103,0,13,1)"]],"showscale":true,"locationmode":"USA-states","z":[5,4,2,79,21,2,0,17,64,7,0,6,4,0,4,0,18,0,8,12,5,2,1,2,0,1,6,0,11,0,9,2,8,170,0,51,0,9,2,12,43,3,0,196,6,0,8,0],"text":["Alabama <br> Number Killed 5","Arizona <br> Number Killed 4","Arkansas <br> Number Killed 2","California <br> Number Killed 79","Colorado <br> Number Killed 21","Connecticut <br> Number Killed 2","Delaware <br> Number Killed 0","District of Columbia <br> Number Killed 17","Florida <br> Number Killed 64","Georgia <br> Number Killed 7","Idaho <br> Number Killed 0","Illinois <br> Number Killed 6","Indiana <br> Number Killed 4","Iowa <br> Number Killed 0","Kansas <br> Number Killed 4","Kentucky <br> Number Killed 0","Louisiana <br> Number Killed 18","Maine <br> Number Killed 0","Maryland <br> Number Killed 8","Massachusetts <br> Number Killed 12","Michigan <br> Number Killed 5","Minnesota <br> Number Killed 2","Mississippi <br> Number Killed 1","Missouri <br> Number Killed 2","Montana <br> Number Killed 0","Nebraska <br> Number Killed 1","Nevada <br> Number Killed 6","New Hampshire <br> Number Killed 0","New Jersey <br> Number Killed 11","New Mexico <br> Number Killed 0","North Carolina <br> Number Killed 9","North Dakota <br> Number Killed 2","Ohio <br> Number Killed 8","Oklahoma <br> Number Killed 170","Oregon <br> Number Killed 0","Pennsylvania <br> Number Killed 51","Rhode Island <br> Number Killed 0","South Carolina <br> Number Killed 9","South Dakota <br> Number Killed 2","Tennessee <br> Number Killed 12","Texas <br> Number Killed 43","Utah <br> Number Killed 3","Vermont <br> Number Killed 0","Virginia <br> Number Killed 196","Washington <br> Number Killed 6","West Virginia <br> Number Killed 0","Wisconsin <br> Number Killed 8","Wyoming <br> Number Killed 0"],"locations":["AL","AZ","AR","CA","CO","CT","DE",null,"FL","GA","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"],"type":"choropleth","geo":"geo","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1}},"base_url":"https://plot.ly"},"evals":["config.modeBarButtonsToAdd.0.click"],"jsHooks":{"render":[{"code":"function(el, x) { var ctConfig = crosstalk.var('plotlyCrosstalkOpts').set({\"on\":\"plotly_click\",\"persistent\":false,\"dynamic\":false,\"selectize\":false,\"opacityDim\":0.2,\"selected\":{\"opacity\":1}}); }","data":null},{"code":"function(el, x) { var ctConfig = crosstalk.var('plotlyCrosstalkOpts').set({\"on\":\"plotly_click\",\"persistent\":false,\"dynamic\":false,\"selectize\":false,\"opacityDim\":0.2,\"selected\":{\"opacity\":1}}); }","data":null}]}}</script></p>
+  filter(country == 217)  %&gt;%                               ## Filter for country == USA
+  unite(date1, iyear,imonth,iday, sep=&quot;-&quot;) %&gt;%              ## Unite seperate year, month, and day cols into one(y-m-d)
+  mutate(dateLub = ymd(date1)) %&gt;%                          ## Convert date into &#39;Lubridate&#39; (YYYY-MM-DD)
+  filter(!is.na(dateLub))  %&gt;%                              ## Filter out obs with missing dates(failed to parse)
+  mutate(city_char = str_to_lower(as.character(city))) %&gt;%  ## Create new city column as character type
+  mutate(month = month(as.POSIXlt(dateLub, 
+                                  format=&quot;%d/%m/%Y&quot;))) %&gt;%  ## Create a new month column
+  mutate(year = year(as.POSIXlt(dateLub, 
+                                format=&quot;%d/%m/%Y&quot;))) %&gt;%    ## Create a new year column
+  mutate(month_year = paste(month, year))                   ## Create new month, year column (M YYYY)</code></pre>
+<p>Here we will examine terrorist attacks by State since 1970: <div id="6c320b0dc35" style="width:672px;height:480px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="6c320b0dc35">{"x":{"visdat":{"6c36c0e540f":["function () ","plotlyVisDat"]},"cur_data":"6c36c0e540f","attrs":{"6c36c0e540f":{"locationmode":"USA-states","alpha":1,"sizes":[10,100],"z":{},"text":{},"locations":{},"color":{},"colors":"Reds"}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"mapType":"geo","scene":{"zaxis":{"title":"totalKilled"}},"geo":{"domain":{"x":[0,1],"y":[0,1]},"scope":"usa","projection":{"type":"albers usa"},"showlakes":true,"lakecolor":"rgba(255,255,255,1)"},"hovermode":"closest","showlegend":false,"legend":{"y":0.5,"yanchor":"top"},"title":"Deaths From Terrorist Attacks Since 1970"},"source":"A","config":{"modeBarButtonsToAdd":[{"name":"Collaborate","icon":{"width":1000,"ascent":500,"descent":-50,"path":"M487 375c7-10 9-23 5-36l-79-259c-3-12-11-23-22-31-11-8-22-12-35-12l-263 0c-15 0-29 5-43 15-13 10-23 23-28 37-5 13-5 25-1 37 0 0 0 3 1 7 1 5 1 8 1 11 0 2 0 4-1 6 0 3-1 5-1 6 1 2 2 4 3 6 1 2 2 4 4 6 2 3 4 5 5 7 5 7 9 16 13 26 4 10 7 19 9 26 0 2 0 5 0 9-1 4-1 6 0 8 0 2 2 5 4 8 3 3 5 5 5 7 4 6 8 15 12 26 4 11 7 19 7 26 1 1 0 4 0 9-1 4-1 7 0 8 1 2 3 5 6 8 4 4 6 6 6 7 4 5 8 13 13 24 4 11 7 20 7 28 1 1 0 4 0 7-1 3-1 6-1 7 0 2 1 4 3 6 1 1 3 4 5 6 2 3 3 5 5 6 1 2 3 5 4 9 2 3 3 7 5 10 1 3 2 6 4 10 2 4 4 7 6 9 2 3 4 5 7 7 3 2 7 3 11 3 3 0 8 0 13-1l0-1c7 2 12 2 14 2l218 0c14 0 25-5 32-16 8-10 10-23 6-37l-79-259c-7-22-13-37-20-43-7-7-19-10-37-10l-248 0c-5 0-9-2-11-5-2-3-2-7 0-12 4-13 18-20 41-20l264 0c5 0 10 2 16 5 5 3 8 6 10 11l85 282c2 5 2 10 2 17 7-3 13-7 17-13z m-304 0c-1-3-1-5 0-7 1-1 3-2 6-2l174 0c2 0 4 1 7 2 2 2 4 4 5 7l6 18c0 3 0 5-1 7-1 1-3 2-6 2l-173 0c-3 0-5-1-8-2-2-2-4-4-4-7z m-24-73c-1-3-1-5 0-7 2-2 3-2 6-2l174 0c2 0 5 0 7 2 3 2 4 4 5 7l6 18c1 2 0 5-1 6-1 2-3 3-5 3l-174 0c-3 0-5-1-7-3-3-1-4-4-5-6z"},"click":"function(gd) { \n        // is this being viewed in RStudio?\n        if (location.search == '?viewer_pane=1') {\n          alert('To learn about plotly for collaboration, visit:\\n https://cpsievert.github.io/plotly_book/plot-ly-for-collaboration.html');\n        } else {\n          window.open('https://cpsievert.github.io/plotly_book/plot-ly-for-collaboration.html', '_blank');\n        }\n      }"}],"cloud":false},"data":[{"colorbar":{"title":"Deaths","ticklen":2,"len":0.5,"y":1,"lenmode":"fraction","yanchor":"top"},"colorscale":[["0","rgba(255,245,240,1)"],["0.000354233085370174","rgba(255,245,240,1)"],["0.000708466170740347","rgba(255,245,240,1)"],["0.00141693234148069","rgba(255,245,240,1)"],["0.00177116542685087","rgba(255,245,240,1)"],["0.00212539851222104","rgba(255,245,239,1)"],["0.00247963159759122","rgba(255,245,239,1)"],["0.00283386468296139","rgba(255,245,239,1)"],["0.00318809776833156","rgba(255,244,239,1)"],["0.00389656393907191","rgba(255,244,239,1)"],["0.00425079702444208","rgba(255,244,239,1)"],["0.00637619553666312","rgba(255,244,238,1)"],["0.0152320226709175","rgba(255,242,236,1)"],["0.0226709174636911","rgba(255,241,235,1)"],["0.0602196245129295","rgba(255,235,225,1)"],["1","rgba(103,0,13,1)"]],"showscale":true,"locationmode":"USA-states","z":[5,4,2,79,21,2,0,17,64,7,0,6,4,0,4,0,18,0,8,12,5,2,1,2,0,1,6,0,11,0,2823,9,2,8,170,0,51,0,9,2,12,43,3,0,196,6,0,8,0],"text":["Alabama <br> Number Killed 5","Arizona <br> Number Killed 4","Arkansas <br> Number Killed 2","California <br> Number Killed 79","Colorado <br> Number Killed 21","Connecticut <br> Number Killed 2","Delaware <br> Number Killed 0","District of Columbia <br> Number Killed 17","Florida <br> Number Killed 64","Georgia <br> Number Killed 7","Idaho <br> Number Killed 0","Illinois <br> Number Killed 6","Indiana <br> Number Killed 4","Iowa <br> Number Killed 0","Kansas <br> Number Killed 4","Kentucky <br> Number Killed 0","Louisiana <br> Number Killed 18","Maine <br> Number Killed 0","Maryland <br> Number Killed 8","Massachusetts <br> Number Killed 12","Michigan <br> Number Killed 5","Minnesota <br> Number Killed 2","Mississippi <br> Number Killed 1","Missouri <br> Number Killed 2","Montana <br> Number Killed 0","Nebraska <br> Number Killed 1","Nevada <br> Number Killed 6","New Hampshire <br> Number Killed 0","New Jersey <br> Number Killed 11","New Mexico <br> Number Killed 0","New York <br> Number Killed 2823","North Carolina <br> Number Killed 9","North Dakota <br> Number Killed 2","Ohio <br> Number Killed 8","Oklahoma <br> Number Killed 170","Oregon <br> Number Killed 0","Pennsylvania <br> Number Killed 51","Rhode Island <br> Number Killed 0","South Carolina <br> Number Killed 9","South Dakota <br> Number Killed 2","Tennessee <br> Number Killed 12","Texas <br> Number Killed 43","Utah <br> Number Killed 3","Vermont <br> Number Killed 0","Virginia <br> Number Killed 196","Washington <br> Number Killed 6","West Virginia <br> Number Killed 0","Wisconsin <br> Number Killed 8","Wyoming <br> Number Killed 0"],"locations":["AL","AZ","AR","CA","CO","CT","DE",null,"FL","GA","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"],"type":"choropleth","geo":"geo","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1}},"base_url":"https://plot.ly"},"evals":["config.modeBarButtonsToAdd.0.click"],"jsHooks":{"render":[{"code":"function(el, x) { var ctConfig = crosstalk.var('plotlyCrosstalkOpts').set({\"on\":\"plotly_click\",\"persistent\":false,\"dynamic\":false,\"selectize\":false,\"opacityDim\":0.2,\"selected\":{\"opacity\":1}}); }","data":null},{"code":"function(el, x) { var ctConfig = crosstalk.var('plotlyCrosstalkOpts').set({\"on\":\"plotly_click\",\"persistent\":false,\"dynamic\":false,\"selectize\":false,\"opacityDim\":0.2,\"selected\":{\"opacity\":1}}); }","data":null}]}}</script></p>
+<p>We notice that New York skews the data so we will examine the data without New York: <div id="6c322179bbe" style="width:672px;height:480px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="6c322179bbe">{"x":{"visdat":{"6c352c95d78":["function () ","plotlyVisDat"]},"cur_data":"6c352c95d78","attrs":{"6c352c95d78":{"locationmode":"USA-states","alpha":1,"sizes":[10,100],"z":{},"text":{},"locations":{},"color":{},"colors":"Reds"}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"mapType":"geo","scene":{"zaxis":{"title":"totalKilled"}},"geo":{"domain":{"x":[0,1],"y":[0,1]},"scope":"usa","projection":{"type":"albers usa"},"showlakes":true,"lakecolor":"rgba(255,255,255,1)"},"hovermode":"closest","showlegend":false,"legend":{"y":0.5,"yanchor":"top"},"title":"Deaths From Terrorist Attacks Since 1970 Excluding New York"},"source":"A","config":{"modeBarButtonsToAdd":[{"name":"Collaborate","icon":{"width":1000,"ascent":500,"descent":-50,"path":"M487 375c7-10 9-23 5-36l-79-259c-3-12-11-23-22-31-11-8-22-12-35-12l-263 0c-15 0-29 5-43 15-13 10-23 23-28 37-5 13-5 25-1 37 0 0 0 3 1 7 1 5 1 8 1 11 0 2 0 4-1 6 0 3-1 5-1 6 1 2 2 4 3 6 1 2 2 4 4 6 2 3 4 5 5 7 5 7 9 16 13 26 4 10 7 19 9 26 0 2 0 5 0 9-1 4-1 6 0 8 0 2 2 5 4 8 3 3 5 5 5 7 4 6 8 15 12 26 4 11 7 19 7 26 1 1 0 4 0 9-1 4-1 7 0 8 1 2 3 5 6 8 4 4 6 6 6 7 4 5 8 13 13 24 4 11 7 20 7 28 1 1 0 4 0 7-1 3-1 6-1 7 0 2 1 4 3 6 1 1 3 4 5 6 2 3 3 5 5 6 1 2 3 5 4 9 2 3 3 7 5 10 1 3 2 6 4 10 2 4 4 7 6 9 2 3 4 5 7 7 3 2 7 3 11 3 3 0 8 0 13-1l0-1c7 2 12 2 14 2l218 0c14 0 25-5 32-16 8-10 10-23 6-37l-79-259c-7-22-13-37-20-43-7-7-19-10-37-10l-248 0c-5 0-9-2-11-5-2-3-2-7 0-12 4-13 18-20 41-20l264 0c5 0 10 2 16 5 5 3 8 6 10 11l85 282c2 5 2 10 2 17 7-3 13-7 17-13z m-304 0c-1-3-1-5 0-7 1-1 3-2 6-2l174 0c2 0 4 1 7 2 2 2 4 4 5 7l6 18c0 3 0 5-1 7-1 1-3 2-6 2l-173 0c-3 0-5-1-8-2-2-2-4-4-4-7z m-24-73c-1-3-1-5 0-7 2-2 3-2 6-2l174 0c2 0 5 0 7 2 3 2 4 4 5 7l6 18c1 2 0 5-1 6-1 2-3 3-5 3l-174 0c-3 0-5-1-7-3-3-1-4-4-5-6z"},"click":"function(gd) { \n        // is this being viewed in RStudio?\n        if (location.search == '?viewer_pane=1') {\n          alert('To learn about plotly for collaboration, visit:\\n https://cpsievert.github.io/plotly_book/plot-ly-for-collaboration.html');\n        } else {\n          window.open('https://cpsievert.github.io/plotly_book/plot-ly-for-collaboration.html', '_blank');\n        }\n      }"}],"cloud":false},"data":[{"colorbar":{"title":"Deaths","ticklen":2,"len":0.5,"y":1,"lenmode":"fraction","yanchor":"top"},"colorscale":[["0","rgba(255,245,240,1)"],["0.00510204081632653","rgba(255,244,239,1)"],["0.0102040816326531","rgba(255,243,238,1)"],["0.0180697278911565","rgba(255,242,236,1)"],["0.0204081632653061","rgba(255,242,235,1)"],["0.0255102040816327","rgba(255,241,234,1)"],["0.0306122448979592","rgba(255,240,233,1)"],["0.0325255102040816","rgba(255,240,232,1)"],["0.0408163265306122","rgba(255,238,230,1)"],["0.0423044217687075","rgba(255,238,230,1)"],["0.048469387755102","rgba(255,237,228,1)"],["0.0612244897959184","rgba(255,235,225,1)"],["0.0875850340136054","rgba(254,230,219,1)"],["0.121173469387755","rgba(254,225,211,1)"],["0.265731292517007","rgba(252,182,155,1)"],["0.422406462585033","rgba(252,131,99,1)"],["1","rgba(103,0,13,1)"]],"showscale":true,"locationmode":"USA-states","z":[5,4,2,79,21,2,0,17,64,7,0,6,4,0,4,0,18,0,8,12,5,2,1,2,0,1,6,0,11,0,9,2,8,170,0,51,0,9,2,12,43,3,0,196,6,0,8,0],"text":["Alabama <br> Number Killed 5","Arizona <br> Number Killed 4","Arkansas <br> Number Killed 2","California <br> Number Killed 79","Colorado <br> Number Killed 21","Connecticut <br> Number Killed 2","Delaware <br> Number Killed 0","District of Columbia <br> Number Killed 17","Florida <br> Number Killed 64","Georgia <br> Number Killed 7","Idaho <br> Number Killed 0","Illinois <br> Number Killed 6","Indiana <br> Number Killed 4","Iowa <br> Number Killed 0","Kansas <br> Number Killed 4","Kentucky <br> Number Killed 0","Louisiana <br> Number Killed 18","Maine <br> Number Killed 0","Maryland <br> Number Killed 8","Massachusetts <br> Number Killed 12","Michigan <br> Number Killed 5","Minnesota <br> Number Killed 2","Mississippi <br> Number Killed 1","Missouri <br> Number Killed 2","Montana <br> Number Killed 0","Nebraska <br> Number Killed 1","Nevada <br> Number Killed 6","New Hampshire <br> Number Killed 0","New Jersey <br> Number Killed 11","New Mexico <br> Number Killed 0","North Carolina <br> Number Killed 9","North Dakota <br> Number Killed 2","Ohio <br> Number Killed 8","Oklahoma <br> Number Killed 170","Oregon <br> Number Killed 0","Pennsylvania <br> Number Killed 51","Rhode Island <br> Number Killed 0","South Carolina <br> Number Killed 9","South Dakota <br> Number Killed 2","Tennessee <br> Number Killed 12","Texas <br> Number Killed 43","Utah <br> Number Killed 3","Vermont <br> Number Killed 0","Virginia <br> Number Killed 196","Washington <br> Number Killed 6","West Virginia <br> Number Killed 0","Wisconsin <br> Number Killed 8","Wyoming <br> Number Killed 0"],"locations":["AL","AZ","AR","CA","CO","CT","DE",null,"FL","GA","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"],"type":"choropleth","geo":"geo","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1}},"base_url":"https://plot.ly"},"evals":["config.modeBarButtonsToAdd.0.click"],"jsHooks":{"render":[{"code":"function(el, x) { var ctConfig = crosstalk.var('plotlyCrosstalkOpts').set({\"on\":\"plotly_click\",\"persistent\":false,\"dynamic\":false,\"selectize\":false,\"opacityDim\":0.2,\"selected\":{\"opacity\":1}}); }","data":null},{"code":"function(el, x) { var ctConfig = crosstalk.var('plotlyCrosstalkOpts').set({\"on\":\"plotly_click\",\"persistent\":false,\"dynamic\":false,\"selectize\":false,\"opacityDim\":0.2,\"selected\":{\"opacity\":1}}); }","data":null}]}}</script></p>
 <p>And now we will examine attacks as time progresses from 1970 to present day: <html>
 	<body>
 		<div>
@@ -261,72 +247,77 @@ usaTerrorismData &lt;- terrorismData %&gt;%
 		</div>
 	</body>
 </html></p>
+<p>We will now use the latitude and longitude of each observation in order to group each of our observations into regions. We will utilize k-means clustering in order to do so. After cross-validation, we found that k = 20 produces the best clustering for our data. We are interested in creating regions instead of states because states have proven to be very difficult to work with.</p>
 <pre class="r"><code>cluster &lt;- function(latVector, longVector) {
 
-  set.seed(4747)                                                ## Set seed for reproducibility
+  set.seed(4747)                                        ## Set seed for reproducibility
   
-  lat_name &lt;- &quot;realLat&quot;                                         ## Name realLat column
-  long_name &lt;- &quot;realLong&quot;                                       ## Name realLong column
-  latlong &lt;- data.frame(latVector, longVector)                  ## Initialize new data frame with lat and long params
-  names(latlong) &lt;- c(lat_name, long_name)                      ## Apply names to frame
+  lat_name &lt;- &quot;realLat&quot;                                 ## Name realLat column
+  long_name &lt;- &quot;realLong&quot;                               ## Name realLong column
+  latlong &lt;- data.frame(latVector, longVector)          ## Initialize new data frame with lat and long params
+  names(latlong) &lt;- c(lat_name, long_name)              ## Apply names to frame
   
-  latlongCluster &lt;- kmeans(latlong, centers = 20, nstart = 10)  ## Run k-means clustering with centers centroids and nstart CV&#39;s
+  latlongCluster &lt;- kmeans(latlong, 
+                           centers = 20, 
+                           nstart = 10)                 ## Run k-means clustering with centers &amp; nstart
   
-  group_lat &lt;- &quot;GroupLat&quot;                                       ## Name GroupLat column
-  group_long &lt;- &quot;GroupLong&quot;                                     ## Name GroupLong column
-  latlongCenterData &lt;- data.frame(latlongCluster$centers)       ## Initialize data frame with centers
-  names(latlongCenterData) &lt;- c(group_lat, group_long)          ## Apply names to frame
+  group_lat &lt;- &quot;GroupLat&quot;                               ## Name GroupLat column
+  group_long &lt;- &quot;GroupLong&quot;                             ## Name GroupLong column
+  latlongCenterData&lt;-data.frame(latlongCluster$centers) ## Initialize data frame with centers
+  names(latlongCenterData)&lt;-c(group_lat, group_long)    ## Apply names to frame
   
   latlongCenterData$clusterCenter &lt;- 
-    apply(latlongCenterData, 1, paste, collapse = &quot;,&quot;)          ## Combine latlongCenterData columns into a comma seperated value
+    apply(latlongCenterData,1,paste,collapse=&quot;,&quot;)       ## Combine latlongCenterData columns
   
-  group_name &lt;- &quot;GroupNumber&quot;                                   ## Name GroupNumber column
-  resultData &lt;- data.frame(latlongCluster$cluster)              ## Initialize data frame with kmeans clusters (region values)
-  names(resultData) &lt;- c(group_name)                            ## Apply names to frame
+  group_name &lt;- &quot;GroupNumber&quot;                           ## Name GroupNumber column
+  resultData &lt;- data.frame(latlongCluster$cluster)      ## Initialize data frame with kmeans clusters
+  names(resultData) &lt;- c(group_name)                    ## Apply names to frame
   
   resultData &lt;- resultData %&gt;%
     mutate(LatLongCenter = 
-             latlongCenterData$clusterCenter[GroupNumber])      ## Get the appropriate centroid location for each region number
+        latlongCenterData$clusterCenter[GroupNumber])   ## Get appropriate centroid location for each region number
   
   resultData$cluster &lt;- 
-    apply(resultData, 1, paste, collapse = &quot;,&quot;)                 ## Create a new column `cluster` columns collapsed together
+    apply(resultData, 1, paste, collapse = &quot;,&quot;)         ## Create a new col `cluster` columns collapsed together
   
-  return(resultData$cluster)                                    ## Return the comma seperated cluster data as a vector
+  return(resultData$cluster)                            ## Return the comma seperated cluster data as vector
 }</code></pre>
 <p>We want to create a model to forecast future terrorist attacks with a neural network. First, we must clean our master data - this includes filtering out insignificant or unnecessary variables (both categorical and some numerical). We must also check to make sure our data frame contains no missing (na) values.</p>
 <p>Because our neural net takes so long to train initial CV was limited to experimenting with just a handful of different hidden layers. The code for producing this model is below:</p>
 <pre class="r"><code># Neural net model
 
-set.seed(4747)                                                                 ## Set seed for neural net reproducibility
+set.seed(4747)                                                          ## Set seed for neural net
 
-max = apply(nnData, 2, max)                                                    ## Get max of data
-min = apply(nnData, 2, min)                                                    ## Get min of data   
-scaledData = as.data.frame(scale(nnData, center=min, scale=max-min))           ## scale data from min to max
+max = apply(nnData, 2, max)                                             ## Get max of data
+min = apply(nnData, 2, min)                                             ## Get min of data   
+scaledData = as.data.frame(scale(nnData, center=min, scale=max-min))    ## scale data from min to max
 
-sampleSize = 0.1 * nrow(scaledData)                                            ## Sample from 2/3 of the observations
-index = sample(seq_len(nrow(scaledData)), size=sampleSize)                     ## Compute index sample
+sampleSize = 0.2 * nrow(scaledData)                                     ## Sample from 2/3 of the observations
+index = sample(seq_len(nrow(scaledData)), size=sampleSize)              ## Compute index sample
 
-trainNNData &lt;- scaledData[index,]                                              ## Get training set
-testNNData &lt;- scaledData[-index,]                                              ## Get test set
+trainNNData &lt;- scaledData[index,]                                       ## Get training set
+testNNData &lt;- scaledData[-index,]                                       ## Get test set
 
 neuralNet &lt;-neuralnet(isAttack~month.x+Region+TempDifference+
                       AttacksPrevYearInReg+nKilledPrevYearInReg, 
-                      trainNNData, hidden=3, linear.output=TRUE)               ## Fit neural network on data</code></pre>
+                      trainNNData, hidden=3, linear.output=TRUE)        ## Fit neural network on data</code></pre>
 <p>We can assess this model by looking at a sample of predictions as well as variable importance.</p>
 <p><img src="MasterData_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
-<div class="figure">
-<img src="Images/NNRes.png" alt="Neural Net Result" />
-<p class="caption">Neural Net Result</p>
-</div>
 <pre><code>##   actual     prediction
-## 1      0 0.007477865267
-## 2      0 0.006160876839
-## 3      0 0.006261016418
-## 4      0 0.005311214019
-## 5      0 0.005676562673
-## 6      0 0.006093440025</code></pre>
+## 1      0 0.004178709223
+## 2      0 0.003969308456
+## 3      0 0.007903124096
+## 5      0 0.006799993672
+## 6      0 0.006728228337
+## 7      0 0.006309301658</code></pre>
+<pre><code>## # A tibble: 2 x 2
+##   actual `mean(prediction)`
+##    &lt;dbl&gt;              &lt;dbl&gt;
+## 1      0     0.007913349105
+## 2      1     0.014233869282</code></pre>
 <p><img src="MasterData_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
 <p>That did alright, but now let’s try to predict whether a terrorist attack is going to happen in a given year, rather than a given day in a region. This is going to require a bit of data re-wrangling to get the appropriate explanatory variables.</p>
+<p>Results for neural net by year:</p>
 <p><img src="MasterData_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
 <pre><code>##    actual   prediction
 ## 4       0 0.1634625156
@@ -335,10 +326,6 @@ neuralNet &lt;-neuralnet(isAttack~month.x+Region+TempDifference+
 ## 9       0 0.1634725187
 ## 11      1 0.1634722189
 ## 12      1 0.2303895829</code></pre>
-<pre><code>##       prediction
-## actual   0   1
-##      0 139  31
-##      1  71  50</code></pre>
 <pre><code>## # A tibble: 2 x 2
 ##   actual `mean(prediction)`
 ##    &lt;dbl&gt;              &lt;dbl&gt;
