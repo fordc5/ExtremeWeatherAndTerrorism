@@ -208,7 +208,6 @@ htmltools::includeHTML("shiny.html")
 
 
 
-K-means ,...
 ```{r, include=TRUE}
 
 
@@ -328,14 +327,10 @@ mergedTempTerrorismData <- mergedTempTerrorismData %>%
 ```
 
 
+We want to create a model to forecast future terrorist attacks with a neural network. First, we must clean our master data - this includes filtering out insignificant or unnecessary variables (both categorical and some numerical). We must also check to make sure our data frame contains no missing (na) values. 
 
+Because our neural net takes so long to train initial CV was limited to experimenting with just a handful of different hidden layers. The code for producing this model is below:
 
-
-
-
-Now we must clean our master data for a neural network. This includes filtering out insignificant or unnecessary variables (both categorical and some numerical). We must also check to make sure our data frame contains no missing (na) values. 
-
-NEURAL net paragraph
 
 ```{r, warning=FALSE, include=FALSE}
 ## First check to make sure we do not have any missing values in our data frame.
@@ -372,13 +367,19 @@ neuralNet <-neuralnet(isAttack~month.x+Region+TempDifference+
                       AttacksPrevYearInReg+nKilledPrevYearInReg, 
                       trainNNData, hidden=3, linear.output=TRUE)               ## Fit neural network on data
 
-plot(neuralNet)                                                                ## Plot the neural network
+```
 
+We can assess this model by looking at a sample of predictions as well as variable importance.
+
+```{r, warning=FALSE, include=FALSE}
+plot(neuralNet)
+```
+
+```{r, warning=FALSE, echo=FALSE}
 plot.nnet(neuralNet, cex.val = 0.5)                                            ## Plot the neural network with a nicer library
 ```
 
-Assess the neural network:
-```{r warnings=FALSE, message=FALSE, echo=FALSE}
+```{r warning=FALSE, message=FALSE, echo=FALSE}
 predictTestNN <- compute(neuralNet, testNNData[c("month.x", "Region", 
                                                  "TempDifference", 
                                                  "AttacksPrevYearInReg", 
@@ -390,13 +391,12 @@ head(results)                                                                  #
 
 roundedresults<-sapply(results,round,digits=0)
 roundedresultsdf<-data.frame(roundedresults)
-attach(roundedresultsdf)
-table(actual, prediction)                                                      ## Table of predictions v actual
+#attach(roundedresultsdf)
+#table(actual, prediction)                                                      ## Table of predictions v actual
 
-results %>%
-  group_by(actual) %>%
-  summarise(mean(prediction))                                                  ## Compute average probability predication for an attack vs non-attack
-
+#results %>%
+#  group_by(actual) %>%
+#  summarise(mean(prediction))                                                  ## Compute average probability predication for an attack vs non-attack
 
 garson(neuralNet)                                                              ## Plot variable importance
 ```
@@ -458,13 +458,18 @@ neuralNetYear <-neuralnet(isAttackYear~Region+TempDifferenceYear+
                       AttacksPrevYearInReg+nKilledPrevYearInReg, 
                       trainNNDataYear, hidden=3, linear.output=TRUE)               ## Fit neural network on data
 
-plot(neuralNetYear)                                                                ## Plot the neural network
-
-plot.nnet(neuralNetYear, cex.val = 0.5)                                            ## Plot the neural network with a nicer library
-
 ```
 
-```{r warnings=FALSE, message=FALSE, echo=FALSE}
+```{r, warning=FALSE, include=FALSE}
+plot(neuralNetYear)                                                                ## Plot the neural network
+```
+
+```{r, warning=FALSE, echo=FALSE}
+plot.nnet(neuralNetYear, cex.val = 0.5)                                            ## Plot the neural network with a nicer library
+```
+
+
+```{r warning=FALSE, message=FALSE, echo=FALSE}
 predictTestNNYear <- compute(neuralNetYear, testNNDataYear[c("Region", 
                                                  "TempDifferenceYear", 
                                                  "AttacksPrevYearInReg", 
@@ -476,12 +481,12 @@ head(resultsYear  )                                                            #
 
 roundedresults<-sapply(resultsYear,round,digits=0)
 roundedresultsdf<-data.frame(roundedresults)
-attach(roundedresultsdf)
-table(actual, prediction)                                                      ## Table of predictions v actual
+#attach(roundedresultsdf)
+#table(actual, prediction)                                                      ## Table of predictions v actual
 
-resultsYear %>%
-  group_by(actual) %>%
-  summarise(mean(prediction))                                                  ## Compute average probability predication for an attack vs non-attack
+#resultsYear %>%
+#  group_by(actual) %>%
+#  summarise(mean(prediction))                                                  ## Compute average probability predication for an attack vs non-attack
 
 
 garson(neuralNetYear)                                                          ## Plot variable importance
