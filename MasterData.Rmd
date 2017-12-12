@@ -205,7 +205,9 @@ htmltools::includeHTML("shiny.html")
 
 
 
-K-means ,...
+We will now use the latitude and longitude of each observation in order to group each of our observations into regions. We will utilize k-means clustering in order to do so. After cross-validation, we found that k = 20 produces the best clustering for our data. We are interested in 
+creating regions instead of states because states have proven to be very difficult to work with.
+
 ```{r, include=TRUE}
 
 
