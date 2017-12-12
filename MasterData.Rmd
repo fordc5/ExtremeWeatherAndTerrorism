@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 ---
 title: "Extreme Weather and Terrorism"
 author: Bradley Druzinsky and Connor Ford
