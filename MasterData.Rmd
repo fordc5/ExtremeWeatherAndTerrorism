@@ -121,9 +121,6 @@ usaTerrorismData <- terrorismData %>%
 ```
 
 
-
-
-
 Here we will examine terrorist attacks by State since 1970:
 ```{r, warning=FALSE, echo = FALSE}
 deathViz <- usaTerrorismData %>%                          # Create dataset to visualize          
