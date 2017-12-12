@@ -32,7 +32,7 @@ library(RColorBrewer)
 
 
 
-```{r, include=FALSE}
+```{r, include=FALSE, warning=FALSE}
 ## Import the Terrorism and Temperature data from split csv's:
 
 ## Aggregating .csv's
@@ -62,7 +62,7 @@ terrorismData[] <- lapply(terrorismData, function(x) type.convert(as.character(x
 temperatureData[] <- lapply(temperatureData, function(x) type.convert(as.character(x)))
 ```
 
-```{r, include=FALSE}
+```{r, include=FALSE, warning=FALSE}
 ## View the initial datasets
 
 ## View head and dimensions of Terrorism Data
@@ -106,7 +106,7 @@ The second data set is a Berkeley Earth dataset which contains average monthly t
 ### Aggregating Master Data Set
 
 After importing our datasets, the first task is to clean the data. This is a long, tedious process, that includes accounting for missing data, merging, and computing a master data frame for terrorist and temperature data in the United States. Below, we show a fraction of this work, with the chunk shown cleaning parts of the inital global terrorism dataset. 
-```{r, include=TRUE}
+```{r, include=TRUE, warning=FALSE}
 ## Get and clean only US terrorist attacks
 usaTerrorismData <- terrorismData %>%
   filter(country == 217)  %>%                                     ## Filter for country == USA
