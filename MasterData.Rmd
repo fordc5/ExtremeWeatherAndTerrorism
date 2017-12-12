@@ -109,11 +109,11 @@ After importing our datasets, the first task is to clean the data. This is a lon
 ```{r, include=TRUE}
 ## Get and clean only US terrorist attacks
 usaTerrorismData <- terrorismData %>%
-  filter(country == 217)  %>%                                        ## Filter for country == USA
-  unite(date1, iyear,imonth,iday, sep="-") %>%                       ## Unite seperate year, month, and day columns into one (y-m-d)
-  mutate(dateLub = ymd(date1)) %>%                                   ## Convert date into 'Lubridate' (YYYY-MM-DD)
-  filter(!is.na(dateLub))  %>%                                       ## Filter out observations with missing dates (failed to parse)
-  mutate(city_char = str_to_lower(as.character(city))) %>%           ## Create new city column as character type
+  filter(country == 217)  %>%                                     ## Filter for country == USA
+  unite(date1, iyear,imonth,iday, sep="-") %>%                    ## Unite seperate year, month, and day columns into one (y-m-d)
+  mutate(dateLub = ymd(date1)) %>%                                ## Convert date into 'Lubridate' (YYYY-MM-DD)
+  filter(!is.na(dateLub))  %>%                                    ## Filter out observations with missing dates (failed to parse)
+  mutate(city_char = str_to_lower(as.character(city))) %>%        ## Create new city column as character type
   mutate(month = month(as.POSIXlt(dateLub, format="%d/%m/%Y"))) %>%  ## Create a new month column
   mutate(year = year(as.POSIXlt(dateLub, format="%d/%m/%Y"))) %>%    ## Create a new year column
   mutate(month_year = paste(month, year))                            ## Create new month, year column (M YYYY)
@@ -124,25 +124,25 @@ usaTerrorismData <- terrorismData %>%
 
 
 
-Static visuals...
-```{r, warning=FALSE}
-deathViz <- usaTerrorismData %>%                         # Create dataset to visualize          
-  filter(provstate != "Puerto Rico") %>%                     # Remove Puerto Rico
-  filter(provstate != "Alaska") %>%                          # Remove Alaska
-  filter(provstate != "Hawaii")  %>%                         # Remove Hawaii
-  filter(longitude < 0) %>%                                  # Remove Locations East of Prime Meridien
-  filter(!is.na(nkill))                                      # Get rid of NA's
+Here we will examine terrorist attacks by State since 1970:
+```{r, warning=FALSE, echo = FALSE}
+deathViz <- usaTerrorismData %>%                          # Create dataset to visualize          
+  filter(provstate != "Puerto Rico") %>%                  # Remove Puerto Rico
+  filter(provstate != "Alaska") %>%                       # Remove Alaska
+  filter(provstate != "Hawaii")  %>%                      # Remove Hawaii
+  filter(longitude < 0) %>%                               # Remove Locations East of Prime Meridien
+  filter(!is.na(nkill))                                   # Get rid of NA's
 
 deathViz <- deathViz %>%                             
-  group_by(provstate) %>%                                   # Group by state
-  summarize(totalKilled = sum(nkill)) %>%                   # Sum number of deaths 
-  mutate(code = state.abb[match(provstate,state.name)])     # Add state abbreviations
+  group_by(provstate) %>%                                 # Group by state
+  summarize(totalKilled = sum(nkill)) %>%                 # Sum number of deaths 
+  mutate(code = state.abb[match(provstate,state.name)])   # Add state abbreviations
 
 deathViz$hover <- with(deathViz,
                            paste(provstate, '<br>', "Number Killed", totalKilled))  # Create a Variable                                                                                     # for hovering
                                                             
-l <- list(color = toRGB("white"), width = 2)                   # give state boundaries a white border
-g <- list(                                                     # specify some map projection/options
+l <- list(color = toRGB("white"), width = 2)                # give state boundaries a white border
+g <- list(                                                  # specify some map projection/options
   scope = 'usa',
   projection = list(type = 'albers usa'),
   showlakes = TRUE,
@@ -161,19 +161,23 @@ p1 <- plot_geo(deathViz, locationmode = 'USA-states') %>%
   )
  
 p1
+```
 
-deathVizNoNy <- usaTerrorismData %>%                         # Create dataset to visualize          
-  filter(provstate != "Puerto Rico") %>%                     # Remove Puerto Rico
-  filter(provstate != "Alaska") %>%                          # Remove Alaska
-  filter(provstate != "New York") %>%                        # Remove New York
-  filter(provstate != "Hawaii")  %>%                         # Remove Hawaii
-  filter(longitude < 0) %>%                                  # Remove Locations East of Prime Meridien
-  filter(!is.na(nkill))                                      # Get rid of NA's
+
+We notice that New York skews the data so we will examine the data without New York:
+```{r, warning=FALSE, echo = FALSE}
+deathVizNoNy <- usaTerrorismData %>%                      # Create dataset to visualize          
+  filter(provstate != "Puerto Rico") %>%                  # Remove Puerto Rico
+  filter(provstate != "Alaska") %>%                       # Remove Alaska
+  filter(provstate != "New York") %>%                     # Remove New York
+  filter(provstate != "Hawaii")  %>%                      # Remove Hawaii
+  filter(longitude < 0) %>%                               # Remove Locations East of Prime Meridien
+  filter(!is.na(nkill))                                   # Get rid of NA's
 
 deathVizNoNy <- deathVizNoNy %>%                             
-  group_by(provstate) %>%                                   # Group by state
-  summarize(totalKilled = sum(nkill)) %>%                   # Sum number of deaths 
-  mutate(code = state.abb[match(provstate,state.name)])     # Add state abbreviations
+  group_by(provstate) %>%                                 # Group by state
+  summarize(totalKilled = sum(nkill)) %>%                 # Sum number of deaths 
+  mutate(code = state.abb[match(provstate,state.name)])   # Add state abbreviations
 
 deathVizNoNy$hover <- with(deathVizNoNy,
                            paste(provstate, '<br>', "Number Killed", totalKilled))  # Create a Variable                                                                                     # for hovering
@@ -194,7 +198,7 @@ p2
 
 
 
-Interactive shiny viz....
+And now we will examine attacks as time progresses from 1970 to present day:
 ```{r, echo=FALSE, warning=FALSE}
 library(htmltools)
 htmltools::includeHTML("shiny.html")
