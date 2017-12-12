@@ -1,5 +1,5 @@
-name: "Extreme Weather and Terrorism"
-output_dir: "."
+name: Extreme Weather and Terrorism
+output_dir: '.'
 output:
   html_document:
     lib_dir: site_libs
@@ -13,6 +13,4 @@ navbar:
     href: MasterData.html
   - text: About Us
     href: AboutUs.html
-
-
 
