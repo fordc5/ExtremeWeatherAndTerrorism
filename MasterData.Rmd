@@ -1,9 +1,7 @@
 ---
 title: "Extreme Weather and Terrorism"
-author: "Bradley Druzinsky and Connor Ford"
-output:
-  pdf_document: default
-  html_document: default
+author: Bradley Druzinsky and Connor Ford
+output: html_document
 ---
 
 
