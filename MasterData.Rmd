@@ -1,7 +1,9 @@
 ---
 title: "Extreme Weather and Terrorism"
-author: Bradley Druzinsky and Connor Ford
-output: html_document
+author: "Bradley Druzinsky and Connor Ford"
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 
@@ -104,9 +106,6 @@ The second data set is a Berkeley Earth dataset which contains average monthly t
 
 
 
-
-
-
 ### Aggregating Master Data Set
 
 After importing our datasets, the first task is to clean the data. This is a long, tedious process, that includes accounting for missing data, merging, and computing a master data frame for terrorist and temperature data in the United States. Below, we show a fraction of this work, with the chunk shown cleaning parts of the inital global terrorism dataset. 
@@ -200,13 +199,14 @@ p2
 
 
 And now we will examine attacks as time progresses from 1970 to present day:
+(You can also view this Shiny application hosted at: https://fordc5.shinyapps.io/interactiveterrorism/)
 ```{r, echo=FALSE, warning=FALSE}
 library(htmltools)
 htmltools::includeHTML("shiny.html")
 ```
 
 
-We will now use the latitude and longitude of each observation in order to group each of our observations into regions. We will utilize k-means clustering in order to do so. After cross-validation, we found that k = 20 produces the best clustering for our data. We are interested in creating regions instead of states because states have proven to be very difficult to work with.
+We will now use the latitude and longitude of each observation in order to group each of our observations into regions. We will utilize k-means clustering in order to do so. After cross-validation, we found that k = 20 produces the best clustering for our data. We are interested in creating regions instead of states because there is no comprhensive library that converts latitude and logitudes or cities to states. Furthermore, this clustering is easily extended to regions across the globe making adding other data from around the world easier.
 
 ```{r, include=TRUE}
 cluster <- function(latVector, longVector) {
@@ -329,7 +329,7 @@ mergedTempTerrorismData <- mergedTempTerrorismData %>%
 
 We want to create a model to forecast future terrorist attacks with a neural network. First, we must clean our master data - this includes filtering out insignificant or unnecessary variables (both categorical and some numerical). We must also check to make sure our data frame contains no missing (na) values. 
 
-Because our neural net takes so long to train initial CV was limited to experimenting with just a handful of different hidden layers. The code for producing this model is below:
+Because our neural net takes so long to train, initial CV iss limited to experimenting with just a handful of different hidden layers (c(3), c(3,5), and c(5)). The code for this model is below:
 
 ```{r, warning=FALSE, include=FALSE}
 ## First check to make sure we do not have any missing values in our data frame.
@@ -343,20 +343,18 @@ nnData <- mergedTempTerrorismData %>%
 ## Uncomment to view head and dimension of nnData
 #head(nnData,10)
 #dim(nnData)
-
 ```
 
 
 ```{r warnings=FALSE, message=FALSE}
 # Neural net model
-
 set.seed(4747)                                                          ## Set seed for neural net
 
 max = apply(nnData, 2, max)                                             ## Get max of data
 min = apply(nnData, 2, min)                                             ## Get min of data   
 scaledData = as.data.frame(scale(nnData, center=min, scale=max-min))    ## scale data from min to max
 
-sampleSize = 0.2 * nrow(scaledData)                                     ## Sample from 2/3 of the observations
+sampleSize = 0.67 * nrow(scaledData)                                    ## Sample from 2/3 of the observations
 index = sample(seq_len(nrow(scaledData)), size=sampleSize)              ## Compute index sample
 
 trainNNData <- scaledData[index,]                                       ## Get training set
@@ -374,6 +372,7 @@ We can assess this model by looking at a sample of predictions as well as variab
 plot(neuralNet)
 ```
 
+Visualization of neural network with a hidden layer of 3:
 ```{r, warning=FALSE, echo=FALSE, message=FALSE}
 plot.nnet(neuralNet, cex.val = 0.5)                                            ## Plot the neural network with a nicer library
 ```
@@ -401,7 +400,7 @@ garson(neuralNet)                                                              #
 ```
 
 
-That did alright, but now let's try to predict whether a terrorist attack is going to happen in a given year, rather than a given day in a region. This is going to require a bit of data re-wrangling to get the appropriate explanatory variables.
+That did alright. The predictions appear to be larger for test observations with an attack occuring. However the prediction values are very small - and this makes sense because a terrorist attack in a given month is unlikely - and temperature difference has little effect. But now let's try to predict whether a terrorist attack is going to happen in a given year, rather than a given month in a region. This is going to require a bit of data re-wrangling to get the appropriate explanatory variables. We then use the same neural net code as above to initialze our model.
 
 ```{r warnings=FALSE, message=FALSE, include=FALSE}
 # want additional isAttackYear, TempDifferenceYear
@@ -441,17 +440,17 @@ nnDataYear <- nnDataYear %>%
 ```
 
 ```{r warnings=FALSE, message=FALSE, include=FALSE}
-set.seed(4747)                                                                 ## Set seed for neural net reproducibility
+set.seed(4747)                                                                     ## Set seed for neural net reproducibility
 
 max = apply(nnDataYear, 2, max)                                                    ## Get max of data
 min = apply(nnDataYear, 2, min)                                                    ## Get min of data   
 scaledDataYear = as.data.frame(scale(nnDataYear, center=min, scale=max-min))           ## scale data from min to max
 
-sampleSize = 0.67 * nrow(scaledDataYear)                                            ## Sample from 2/3 of the observations
+sampleSize = 0.67 * nrow(scaledDataYear)                                           ## Sample from 2/3 of the observations
 index = sample(seq_len(nrow(scaledDataYear)), size=sampleSize)                     ## Compute index sample
 
-trainNNDataYear <- scaledDataYear[index,]                                              ## Get training set
-testNNDataYear <- scaledDataYear[-index,]                                              ## Get test set
+trainNNDataYear <- scaledDataYear[index,]                                          ## Get training set
+testNNDataYear <- scaledDataYear[-index,]                                          ## Get test set
 
 neuralNetYear <-neuralnet(isAttackYear~Region+TempDifferenceYear+
                       AttacksPrevYearInReg+nKilledPrevYearInReg, 
@@ -491,4 +490,15 @@ resultsYear %>%
 
 garson(neuralNetYear)                                                          ## Plot variable importance
 ```
+ 
+ #### So was John Kerry right?
+ 
+ It's hard to tell. But we do know a couple things. 
+ 
+1. Predicting when a terrorist attack is going to occur is difficult. However, it appears feasible to observe when regions are more suseptible to terrorist activity than others.
+2. Temperature difference has little to no effect on our model. There are a few possible explanations for this. The first is that there is no actual impact. The second is that we need more explanatory variables drawing on drought, and natural disaster data sets. The third is that we are looking at the wrong place in the world. Perhaps if we looked at countries in the middle east, with higher terrorist attack rates and more susceptible to extreme weather (droughts in Syria's case) then significance might exist. And fourth, the visible effects of climate change may not be strong/frequent enough to see an impact on terrorism. We tend to lean towards the fourth explanation.
+3. We would love to run our model on a data set with additional explantory variables in wind, rainfall, and a natural disaster (earthquake) index as well as terrorism and climate observations from around the world.
+
+Please visit our GitHub repository for source code and much more detail (and code!) for this analysis:
+https://github.com/ST47S-CompStats-Fall2017/ma154-project13-teamclimate
  
