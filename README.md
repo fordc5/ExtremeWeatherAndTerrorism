@@ -1,3 +1,6 @@
+https://fordc5.github.io/ExtremeWeatherAndTerrorism/
+
+
 ### Note on reproducibility
 
 We have created this repository with the intention that the analysis is 100% reproducible. Cloning the code and compiling the R code should be straightforward with the caveat that our data is stored on GitHub with lfs. This means if not already familiar with lfs a couple key steps are needed to run the code:
